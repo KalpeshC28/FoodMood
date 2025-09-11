@@ -1,8 +1,8 @@
-﻿import React from 'react';
+import React from 'react';
 import * as helpers from '../utils/helpers';
 
 function RecipeCard({ recipe, onViewDetails, onToggleFavorite, isFavorited, user }) {
-    const defaultImage = 'https://images.unsplash.com/photo-1546548970-71785318a17b?w=400&h=300&fit=crop&auto=format';
+    
     
     const handleFavorite = () => {
         if (onToggleFavorite) {
@@ -49,14 +49,8 @@ function RecipeCard({ recipe, onViewDetails, onToggleFavorite, isFavorited, user
     return (
         <div className="recipe-card h-100">
             <div className="card-image-container position-relative">
-                <img 
-                    src={recipe.image_url || defaultImage} 
-                    className="card-img-top recipe-card-image" 
-                    alt={recipe.title}
-                    onError={(e) => {
-                        e.target.src = defaultImage;
-                    }}
-                />
+                
+                
                 <div className="recipe-overlay">
                     <div className="recipe-overlay-content">
                         {recipe.difficulty && (

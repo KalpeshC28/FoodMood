@@ -186,9 +186,3 @@ class ShoppingListItemSerializer(serializers.ModelSerializer):
             'id', 'recipe', 'ingredient_name', 'quantity', 'unit',
             'is_purchased', 'created_at'
         ]
-
-class RecipeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Recipe
-        fields = ['id', 'title', 'description', 'ingredients', 'instructions', 'prep_time', 'cook_time', 'servings', 'author', 'created_at']
-        read_only_fields = ['author', 'created_at']

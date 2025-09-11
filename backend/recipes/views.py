@@ -6,7 +6,6 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from django_filters.rest_framework import DjangoFilterBackend
 from django_filters import rest_framework as django_filters
-from rest_framework import generics, permissions
 
 from .models import (
     Recipe, Category, Cuisine, Diet, Rating, Favorite, ShoppingListItem
@@ -14,7 +13,7 @@ from .models import (
 from .serializers import (
     RecipeListSerializer, RecipeDetailSerializer, RecipeCreateUpdateSerializer,
     CategorySerializer, CuisineSerializer, DietSerializer, RatingSerializer,
-    FavoriteSerializer, ShoppingListItemSerializer, RecipeSerializer
+    FavoriteSerializer, ShoppingListItemSerializer
 )
 
 
@@ -185,12 +184,3 @@ class ShoppingListViewSet(viewsets.ModelViewSet):
             user=request.user, is_purchased=True
         ).delete()[0]
         return Response({'message': f'{count} purchased items cleared'})
-    
-    
-class CreateRecipeView(generics.CreateAPIView):
-    queryset = Recipe.objects.all()
-    serializer_class = RecipeDetailSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)

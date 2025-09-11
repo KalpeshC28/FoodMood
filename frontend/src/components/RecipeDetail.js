@@ -125,7 +125,7 @@ function RecipeDetail({ recipe, isOpen, onClose, currentUser }) {
                                         src={currentRecipe.image} 
                                         alt={currentRecipe.title}
                                         className="recipe-detail-image mb-3 img-fluid rounded"
-                                        style={{ width: '100%', maxHeight: '400px', objectFit: 'cover' }}
+                                        style={{ width: '50%', maxHeight: '300px', objectFit: 'cover' }}
                                     />
                                 )}
 

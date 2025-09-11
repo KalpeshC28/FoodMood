@@ -1,5 +1,4 @@
 from django.urls import path, include
-from .views import CreateRecipeView
 from rest_framework.routers import DefaultRouter
 from .views import (
     RecipeViewSet, CategoryViewSet, CuisineViewSet, DietViewSet,
@@ -16,5 +15,4 @@ router.register('shopping-list', ShoppingListViewSet, basename='shoppinglist')
 
 urlpatterns = [
     path('api/', include(router.urls)),
-    path('create/', CreateRecipeView.as_view(), name='create-recipe'),
 ]
