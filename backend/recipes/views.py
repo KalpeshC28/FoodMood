@@ -1,7 +1,7 @@
 from django.shortcuts import get_object_or_404
 from django.db.models import Q, Avg
 from rest_framework import viewsets, status, filters
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from django_filters.rest_framework import DjangoFilterBackend
@@ -34,6 +34,14 @@ class RecipeFilter(django_filters.FilterSet):
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if not serializer.is_valid():
+            print('DEBUG: serializer errors:', serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
     queryset = Recipe.objects.all()
     permission_classes = [IsAuthenticatedOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -184,3 +192,25 @@ class ShoppingListViewSet(viewsets.ModelViewSet):
             user=request.user, is_purchased=True
         ).delete()[0]
         return Response({'message': f'{count} purchased items cleared'})
+    
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def add_favorite(request, recipe_id):
+    recipe = get_object_or_404(Recipe, id=recipe_id)
+    Favorite.objects.get_or_create(user=request.user, recipe=recipe)
+    return Response({'status': 'added'})
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def remove_favorite(request, recipe_id):
+    recipe = get_object_or_404(Recipe, id=recipe_id)
+    Favorite.objects.filter(user=request.user, recipe=recipe).delete()
+    return Response({'status': 'removed'})
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def is_favorite(request, recipe_id):
+    recipe = get_object_or_404(Recipe, id=recipe_id)
+    is_fav = Favorite.objects.filter(user=request.user, recipe=recipe).exists()
+    return Response({'favorite': is_fav})

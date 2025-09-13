@@ -1,14 +1,24 @@
 import React from 'react';
 import * as helpers from '../utils/helpers';
+import { useState, useEffect } from 'react';
+import { addFavorite, removeFavorite, isFavorite as isFavoriteApi } from '../services/api';
 
-function RecipeCard({ recipe, onViewDetails, onToggleFavorite, isFavorited, user }) {
-    
-    
-    const handleFavorite = () => {
-        if (onToggleFavorite) {
-            onToggleFavorite(recipe.id || recipe.spoonacular_id);
-        }
-    };
+function RecipeCard({ recipe, onViewDetails, user, token }) {
+    const [favorite, setFavorite] = useState(false);
+
+
+            useEffect(() => {
+                isFavoriteApi(recipe.id)
+                    .then(res => setFavorite(res.favorite))
+                    .catch(() => setFavorite(false));
+            }, [recipe.id]);
+
+            const handleFavorite = () => {
+                const action = favorite ? removeFavorite : addFavorite;
+                action(recipe.id)
+                    .then(() => setFavorite(!favorite))
+                    .catch(() => {});
+            };
 
     const handleViewDetails = () => {
         if (onViewDetails) {
@@ -20,25 +30,21 @@ function RecipeCard({ recipe, onViewDetails, onToggleFavorite, isFavorited, user
         const stars = [];
         const fullStars = Math.floor(rating);
         const hasHalfStar = rating % 1 !== 0;
-        
         for (let i = 0; i < fullStars; i++) {
             stars.push(<i key={i} className="fas fa-star text-warning"></i>);
         }
-        
         if (hasHalfStar) {
             stars.push(<i key="half" className="fas fa-star-half-alt text-warning"></i>);
         }
-        
         const emptyStars = 5 - Math.ceil(rating);
         for (let i = 0; i < emptyStars; i++) {
             stars.push(<i key={`empty-${i}`} className="far fa-star text-warning"></i>);
         }
-        
         return stars;
     };
 
     const getDifficultyColor = (difficulty) => {
-        switch(difficulty?.toLowerCase()) {
+        switch (difficulty?.toLowerCase()) {
             case 'easy': return 'success';
             case 'medium': return 'warning';
             case 'hard': return 'danger';
@@ -49,8 +55,6 @@ function RecipeCard({ recipe, onViewDetails, onToggleFavorite, isFavorited, user
     return (
         <div className="recipe-card h-100">
             <div className="card-image-container position-relative">
-                
-                
                 <div className="recipe-overlay">
                     <div className="recipe-overlay-content">
                         {recipe.difficulty && (
@@ -58,24 +62,21 @@ function RecipeCard({ recipe, onViewDetails, onToggleFavorite, isFavorited, user
                                 {helpers.capitalize(recipe.difficulty)}
                             </span>
                         )}
-                        {user && (
-                            <button 
-                                className={`btn btn-sm favorite-btn ${isFavorited ? 'favorited' : ''}`}
-                                onClick={handleFavorite}
-                            >
-                                <i className={`${isFavorited ? 'fas' : 'far'} fa-heart`}></i>
-                            </button>
-                        )}
+                                    <button
+                                        className={`btn btn-sm favorite-btn ${favorite ? 'favorite' : ''}`}
+                                        onClick={handleFavorite}
+                                    >
+                                        <i className={`${favorite ? 'fas' : 'far'} fa-heart`}></i>
+                                    </button>
                     </div>
                 </div>
             </div>
-            
+
             <div className="card-body d-flex flex-column">
                 <h5 className="card-title recipe-title">{recipe.title}</h5>
-                
                 <p className="card-text recipe-description">
-                    {recipe.description?.length > 120 
-                        ? `${recipe.description.substring(0, 120)}...` 
+                    {recipe.description?.length > 120
+                        ? `${recipe.description.substring(0, 120)}...`
                         : recipe.description || 'Delicious recipe waiting for you to try!'}
                 </p>
 
@@ -135,7 +136,7 @@ function RecipeCard({ recipe, onViewDetails, onToggleFavorite, isFavorited, user
                 </div>
 
                 <div className="mt-auto d-flex justify-content-between align-items-center">
-                    <button 
+                    <button
                         className="btn btn-primary btn-sm view-recipe-btn"
                         onClick={handleViewDetails}
                         style={{
@@ -159,7 +160,7 @@ function RecipeCard({ recipe, onViewDetails, onToggleFavorite, isFavorited, user
                         <i className="fas fa-eye me-2"></i>
                         View Recipe
                     </button>
-                    
+
                     {recipe.meal_types && recipe.meal_types.length > 0 && (
                         <span className="text-secondary small">
                             <i className="fas fa-utensils me-1"></i>
@@ -171,5 +172,6 @@ function RecipeCard({ recipe, onViewDetails, onToggleFavorite, isFavorited, user
         </div>
     );
 }
+
 
 export default RecipeCard;

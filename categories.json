@@ -1,0 +1,26 @@
+﻿
+
+StatusCode        : 200
+StatusDescription : OK
+Content           : [{"id":1,"name":"Breakfast","description":"Morning meals and 
+                    brunch dishes"},{"id":2,"name":"Lunch","description":"Midday 
+                    meals and light 
+                    dishes"},{"id":3,"name":"Dinner","description":"Evening meals ...
+RawContent        : HTTP/1.1 200 OK
+                    Vary: Accept, Cookie, origin
+                    Allow: GET, HEAD, OPTIONS
+                    X-Frame-Options: DENY
+                    X-Content-Type-Options: nosniff
+                    Referrer-Policy: same-origin
+                    Cross-Origin-Opener-Policy: same-origin...
+Forms             : {}
+Headers           : {[Vary, Accept, Cookie, origin], [Allow, GET, HEAD, OPTIONS], 
+                    [X-Frame-Options, DENY], [X-Content-Type-Options, nosniff]...}
+Images            : {}
+InputFields       : {}
+Links             : {}
+ParsedHtml        : mshtml.HTMLDocumentClass
+RawContentLength  : 421
+
+
+

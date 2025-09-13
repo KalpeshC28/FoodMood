@@ -1,8 +1,13 @@
-const API_BASE_URL = 'https://foodwish.onrender.com';
+// Favorite helpers
+const API_BASE_URL = "http://localhost:8000/api";
+
+export async function getRecipes() {
+  return apiRequest(`${API_BASE_URL}/recipes/`);
+}
 
 // Helper function to get auth token
 const getAuthToken = () => {
-    const user = localStorage.getItem('foodwish_user');
+    const user = localStorage.getItem('foodmood_user');
     if (user) {
         const userData = JSON.parse(user);
         return userData.token;
@@ -149,7 +154,7 @@ export const login = async (credentials) => {
             token: data.token
         };
         
-        localStorage.setItem('foodwish_user', JSON.stringify(userWithToken));
+    localStorage.setItem('foodmood_user', JSON.stringify(userWithToken));
         return { user: userWithToken, token: data.token };
     } catch (error) {
         console.error('Login error:', error);
@@ -179,7 +184,7 @@ export const register = async (userData) => {
             token: data.token
         };
         
-        localStorage.setItem('foodwish_user', JSON.stringify(userWithToken));
+    localStorage.setItem('foodmood_user', JSON.stringify(userWithToken));
         return { user: userWithToken, token: data.token };
     } catch (error) {
         console.error('Registration error:', error);
@@ -197,13 +202,13 @@ export const logout = async () => {
         // Continue with local logout even if API call fails
     }
     
-    localStorage.removeItem('foodwish_user');
-    localStorage.removeItem('foodwish_favorites');
+    localStorage.removeItem('foodmood_user');
+    localStorage.removeItem('foodmood_favorites');
     return { success: true };
 };
 
 export const getCurrentUser = async () => {
-    const user = localStorage.getItem('foodwish_user');
+    const user = localStorage.getItem('foodmood_user');
     
     if (user) {
         try {
@@ -212,7 +217,7 @@ export const getCurrentUser = async () => {
             return { user: JSON.parse(user) };
         } catch (error) {
             // Token is invalid, clear local storage
-            localStorage.removeItem('foodwish_user');
+            localStorage.removeItem('foodmood_user');
             throw new Error('Session expired');
         }
     }
@@ -242,6 +247,14 @@ export const addFavorite = async (recipeId) => {
         throw error;
     }
 };
+
+export async function isFavorite(recipeId) {
+    try {
+        return await apiRequest(`/recipes/${recipeId}/is_favorite/`, { method: 'GET' });
+    } catch (error) {
+        return { favorite: false };
+    }
+}
 
 export const removeFavorite = async (recipeId) => {
     try {

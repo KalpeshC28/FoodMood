@@ -6,6 +6,7 @@ import RecipeFilter from "./components/RecipeFilter";
 import UserHistory from "./components/UserHistory";
 import * as apiService from "./services/api";
 import * as helpers from "./utils/helpers";
+import AddRecipePage from "./AddRecipePage";
 import './App.css';
 
 // Particle Effect Component
@@ -44,6 +45,8 @@ function App() {
     const [showRecipeDetail, setShowRecipeDetail] = useState(false);
     const [showHistory, setShowHistory] = useState(false);
     const [currentView, setCurrentView] = useState('search');
+    // Add a view for adding recipes
+    const handleShowAddRecipe = () => setCurrentView('add-recipe');
     const [searchFilters, setSearchFilters] = useState({
         query: '',
         cuisine: '',
@@ -99,7 +102,7 @@ function App() {
             const response = await apiService.register(userData);
             setCurrentUser(response.user);
             setShowAuthModal(false);
-            helpers.showToast('Welcome to FoodWish! 🍳', 'success');
+            helpers.showToast('Welcome to FoodMood! 🍳', 'success');
             loadFavorites();
         } catch (error) {
             throw error;
@@ -199,192 +202,220 @@ function App() {
     const displayedRecipes = currentView === 'favorites' ? favorites : recipes;
 
     return (
-        <div className="App">
-            <ParticleBackground />
-            
-            {/* Navigation */}
-            <nav className="navbar navbar-expand-lg">
-                <div className="container">
-                    <a className="navbar-brand clickable" href="#">
-                        <i className="fas fa-utensils me-2"></i>
-                        FoodWish
-                    </a>
-                    
-                    <div className="navbar-nav ms-auto">
-                        <button 
-                            className={`nav-link btn btn-link ${currentView === 'search' ? 'active' : ''}`}
-                            onClick={() => setCurrentView('search')}
-                        >
-                            <i className="fas fa-search me-2"></i>Search
-                        </button>
-                        
-                        {currentUser && (
-                            <>
-                                <button 
-                                    className={`nav-link btn btn-link ${currentView === 'favorites' ? 'active' : ''}`}
-                                    onClick={() => setCurrentView('favorites')}
-                                >
-                                    <i className={`fas fa-heart me-2 ${favorites.length > 0 ? 'heart-animate' : ''}`}></i>
-                                    Favorites ({favorites.length})
-                                </button>
-                                <button 
-                                    className="nav-link btn btn-link"
-                                    onClick={() => setShowHistory(true)}
-                                >
-                                    <i className="fas fa-history me-2"></i>History
-                                </button>
-                                <div className="nav-item dropdown">
-                                    <button 
-                                        className="nav-link dropdown-toggle btn btn-link" 
-                                        data-bs-toggle="dropdown"
-                                    >
-                                        <i className="fas fa-user me-2"></i>{currentUser.username}
-                                    </button>
-                                    <ul className="dropdown-menu glass">
-                                        <li>
-                                            <button className="dropdown-item clickable" onClick={handleLogout}>
-                                                <i className="fas fa-sign-out-alt me-2"></i>Logout
-                                            </button>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </>
-                        )}
-                        
-                        {!currentUser && (
-                            <button 
-                                className="btn btn-outline-light"
-                                onClick={() => {
-                                    setAuthMode('login');
-                                    setShowAuthModal(true);
-                                }}
-                            >
-                                <i className="fas fa-sign-in-alt me-2"></i>Login
-                            </button>
-                        )}
-                    </div>
-                </div>
-            </nav>
-
-            {/* Hero Section */}
-            {currentView === 'search' && (
-                <section className="hero-section">
+        <>
+            <div className="App">
+                <ParticleBackground />
+                
+                {/* Navigation */}
+                <nav className="navbar navbar-expand-lg">
                     <div className="container">
-                        <div className="hero-content">
-                            <h1 className="hero-title">Discover Amazing Recipes ✨</h1>
-                            <p className="hero-subtitle">
-                                🍳 Find delicious recipes from around the world, adjust serving sizes, 
-                                and save your favorites! 🌟
-                            </p>
+                        <a className="navbar-brand clickable" href="#">
+                            <i className="fas fa-utensils me-2"></i>
+                            FoodMood
+                        </a>
+                        
+                        <div className="navbar-nav ms-auto">
+                            <button 
+                                className={`nav-link btn btn-link ${currentView === 'search' ? 'active' : ''}`}
+                                onClick={() => setCurrentView('search')}
+                            >
+                                <i className="fas fa-search me-2"></i>Search
+                            </button>
+                            
+                            {currentUser && (
+                                <>
+                                    <button 
+                                        className={`nav-link btn btn-link ${currentView === 'favorites' ? 'active' : ''}`}
+                                        onClick={() => setCurrentView('favorites')}
+                                    >
+                                        <i className={`fas fa-heart me-2 ${favorites.length > 0 ? 'heart-animate' : ''}`}></i>
+                                        Favorites ({favorites.length})
+                                    </button>
+                                    <button 
+                                        className="nav-link btn btn-link"
+                                        onClick={() => setShowHistory(true)}
+                                    >
+                                        <i className="fas fa-history me-2"></i>History
+                                    </button>
+                                    <button 
+                                        className={`nav-link btn btn-link ${currentView === 'add-recipe' ? 'active' : ''}`}
+                                        onClick={handleShowAddRecipe}
+                                    >
+                                        <i className="fas fa-plus me-2"></i>Add Recipe
+                                    </button>
+                                    <div className="nav-item dropdown">
+                                        <button 
+                                            className="nav-link dropdown-toggle btn btn-link" 
+                                            data-bs-toggle="dropdown"
+                                        >
+                                            <i className="fas fa-user me-2"></i>{currentUser.username}
+                                        </button>
+                                        <ul className="dropdown-menu glass">
+                                            <li>
+                                                <button className="dropdown-item clickable" onClick={handleLogout}>
+                                                    <i className="fas fa-sign-out-alt me-2"></i>Logout
+                                                </button>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </>
+                            )}
+                            
+                            {!currentUser && (
+                                <button 
+                                    className="btn btn-outline-light"
+                                    onClick={() => {
+                                        setAuthMode('login');
+                                        setShowAuthModal(true);
+                                    }}
+                                >
+                                    <i className="fas fa-sign-in-alt me-2"></i>Login
+                                </button>
+                            )}
                         </div>
                     </div>
-                </section>
-            )}
+                </nav>
 
-            {/* Main Content */}
-            <div className="container">
+                {/* Hero Section */}
                 {currentView === 'search' && (
-                    <>
-                        <RecipeFilter 
-                            onFilterChange={handleFilterChange}
-                            onSearch={handleSearch}
-                            isLoading={isLoading}
-                        />
-                    </>
-                )}
-
-                {currentView === 'favorites' && (
-                    <div className="text-center mb-4">
-                        <h2>
-                            <i className="fas fa-heart text-danger me-2 heart-animate"></i>
-                            Your Favorite Recipes ❤️
-                        </h2>
-                        <p className="text-muted">
-                            {favorites.length === 0 ? 
-                                '🍽️ No favorites yet. Start searching and save recipes you love!' :
-                                `🎉 You have ${favorites.length} favorite recipe${favorites.length !== 1 ? 's' : ''}`
-                            }
-                        </p>
-                    </div>
-                )}
-
-                {/* Loading State */}
-                {isLoading && (
-                    <div className="loading">
-                        <div className="spinner-border mb-3"></div>
-                        <p>🔍 Searching for delicious recipes...</p>
-                    </div>
-                )}
-
-                {/* Recipe Grid */}
-                {!isLoading && displayedRecipes.length > 0 && (
-                    <div className="recipe-grid">
-                        {displayedRecipes.map(recipe => (
-                            <div key={recipe.id || recipe.spoonacular_id} className="recipe-card">
-                                <RecipeCard
-                                    recipe={recipe}
-                                    onViewDetails={handleRecipeSelect}
-                                    onToggleFavorite={handleToggleFavorite}
-                                    isFavorited={isFavorited(recipe.spoonacular_id || recipe.id)}
-                                />
+                    <section className="hero-section">
+                        <div className="container">
+                            <div className="hero-content">
+                                <h1 className="hero-title">Discover Amazing Recipes ✨</h1>
+                                <p className="hero-subtitle">
+                                    🍳 Find delicious recipes from around the world, adjust serving sizes, 
+                                    and save your favorites! 🌟
+                                </p>
                             </div>
-                        ))}
-                    </div>
+                        </div>
+                    </section>
                 )}
 
-                {/* Empty State */}
-                {!isLoading && displayedRecipes.length === 0 && currentView === 'search' && (
-                    <div className="text-center py-5">
-                        <i className="fas fa-search fa-3x text-white mb-3"></i>
-                        <h4 className="text-white">Start Your Culinary Journey! 🚀</h4>
-                        <p className="text-white opacity-75">
-                            🥘 Use the search above to find recipes by ingredients, cuisine, or meal type.
-                        </p>
-                    </div>
+                {/* Main Content */}
+                <div className="container">
+                    {currentView === 'add-recipe' && (
+                        <AddRecipePage />
+                    )}
+                    {currentView === 'search' && (
+                        <>
+                            <RecipeFilter 
+                                onFilterChange={handleFilterChange}
+                                onSearch={handleSearch}
+                                isLoading={isLoading}
+                            />
+                        </>
+                    )}
+
+                    {currentView === 'favorites' && (
+                        <div className="text-center mb-4">
+                            <h2>
+                                <i className="fas fa-heart text-danger me-2 heart-animate"></i>
+                                Your Favorite Recipes ❤️
+                            </h2>
+                            <p className="text-muted">
+                                {favorites.length === 0 ? 
+                                    '🍽️ No favorites yet. Start searching and save recipes you love!' :
+                                    `🎉 You have ${favorites.length} favorite recipe${favorites.length !== 1 ? 's' : ''}`
+                                }
+                            </p>
+                        </div>
+                    )}
+
+                    {/* Loading State */}
+                    {isLoading && (
+                        <div className="loading">
+                            <div className="spinner-border mb-3"></div>
+                            <p>🔍 Searching for delicious recipes...</p>
+                        </div>
+                    )}
+
+                    {/* Recipe Grid */}
+                    {!isLoading && displayedRecipes.length > 0 && (
+                        <div className="recipe-grid">
+                            {displayedRecipes.map(recipe => (
+                                <div key={recipe.id || recipe.spoonacular_id} className="recipe-card">
+                                    <RecipeCard
+                                        recipe={recipe}
+                                        onViewDetails={handleRecipeSelect}
+                                        onToggleFavorite={handleToggleFavorite}
+                                        isFavorited={isFavorited(recipe.spoonacular_id || recipe.id)}
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Empty State */}
+                    {!isLoading && displayedRecipes.length === 0 && currentView === 'search' && (
+                        <div className="text-center py-5">
+                            <i className="fas fa-search fa-3x text-white mb-3"></i>
+                            <h4 className="text-white">Start Your Culinary Journey! 🚀</h4>
+                            <p className="text-white opacity-75">
+                                🥘 Use the search above to find recipes by ingredients, cuisine, or meal type.
+                            </p>
+                        </div>
+                    )}
+
+                    {!isLoading && favorites.length === 0 && currentView === 'favorites' && (
+                        <div className="text-center py-5">
+                            <i className="fas fa-heart fa-3x text-white mb-3"></i>
+                            <h4 className="text-white">No Favorites Yet 💫</h4>
+                            <p className="text-white opacity-75">
+                                ✨ Start searching for recipes and click the heart icon to save your favorites.
+                            </p>
+                            <button 
+                                className="btn btn-primary clickable"
+                                onClick={() => setCurrentView('search')}
+                            >
+                                <i className="fas fa-search me-2"></i>Search Recipes 🍳
+                            </button>
+                        </div>
+                    )}
+                </div>
+
+                {/* Modals */}
+                {showAuthModal && (
+                    <AuthModal
+                        mode={authMode}
+                        isOpen={showAuthModal}
+                        onClose={() => setShowAuthModal(false)}
+                        onLogin={handleLogin}
+                        onRegister={handleRegister}
+                        onSwitchMode={(mode) => setAuthMode(mode)}
+                    />
                 )}
 
-                {!isLoading && favorites.length === 0 && currentView === 'favorites' && (
-                    <div className="text-center py-5">
-                        <i className="fas fa-heart fa-3x text-white mb-3"></i>
-                        <h4 className="text-white">No Favorites Yet 💫</h4>
-                        <p className="text-white opacity-75">
-                            ✨ Start searching for recipes and click the heart icon to save your favorites.
-                        </p>
-                        <button 
-                            className="btn btn-primary clickable"
-                            onClick={() => setCurrentView('search')}
-                        >
-                            <i className="fas fa-search me-2"></i>Search Recipes 🍳
-                        </button>
-                    </div>
-                )}
-            </div>
-
-            {/* Modals */}
-            {showAuthModal && (
-                <AuthModal
-                    mode={authMode}
-                    isOpen={showAuthModal}
-                    onClose={() => setShowAuthModal(false)}
-                    onLogin={handleLogin}
-                    onRegister={handleRegister}
-                    onSwitchMode={(mode) => setAuthMode(mode)}
+                <RecipeDetail
+                    recipe={selectedRecipe}
+                    isOpen={showRecipeDetail}
+                    onClose={() => setShowRecipeDetail(false)}
+                    currentUser={currentUser}
                 />
-            )}
 
-            <RecipeDetail
-                recipe={selectedRecipe}
-                isOpen={showRecipeDetail}
-                onClose={() => setShowRecipeDetail(false)}
-                currentUser={currentUser}
-            />
-
-            <UserHistory
-                isOpen={showHistory}
-                onClose={() => setShowHistory(false)}
-                onSelectSearch={handleHistorySelect}
-            />
-        </div>
+                <UserHistory
+                    isOpen={showHistory}
+                    onClose={() => setShowHistory(false)}
+                    onSelectSearch={handleHistorySelect}
+                />
+            </div>
+            <footer style={{
+                width: '100%',
+                textAlign: 'center',
+                marginTop: '3rem',
+                padding: '1.5rem 0',
+                background: 'rgba(0,0,0,0.15)',
+                color: '#fff',
+                fontFamily: 'JetBrains Mono, monospace',
+                fontSize: '1.1rem',
+                letterSpacing: '0.04em',
+                borderTop: '1.5px solid #6366f1',
+                boxShadow: '0 -2px 16px 0 #6366f133',
+            }}>
+                <span>
+                    © {new Date().getFullYear()} | Made with ❤️ by <a href="https://github.com/KalpeshC28" target="_blank" rel="noopener noreferrer" style={{color: '#00d4ff', textDecoration: 'underline'}}>KalpeshC28</a>
+                </span>
+            </footer>
+        </>
     );
 }
 
@@ -454,7 +485,7 @@ function AuthModal({ mode, isOpen, onClose, onLogin, onRegister, onSwitchMode })
                 <div className="modal-content">
                     <div className="modal-header">
                         <h5 className="modal-title">
-                            {mode === 'login' ? '🔐 Welcome Back!' : '🎉 Join FoodWish!'}
+                            {mode === 'login' ? '🔐 Welcome Back!' : '🎉 Join FoodMood!'}
                         </h5>
                         <button type="button" className="btn-close btn-close-white" onClick={onClose}></button>
                     </div>

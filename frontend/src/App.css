@@ -265,6 +265,84 @@ body::before {
     text-align: center;
 }
 
+/* Recipe Filter Custom Color Scheme */
+.recipe-filter-section, .search-section {
+    background: var(--dark-card);
+    border-radius: 1.2rem;
+    box-shadow: var(--shadow-glass);
+    border: 1.5px solid var(--glass-border);
+    padding: 2rem 2.5rem;
+    margin-bottom: 2rem;
+}
+
+.recipe-filter-section label, .search-section label {
+    color: #fff !important;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+}
+
+.recipe-filter-section .form-select, .search-section .form-select {
+    color: #ffffff !important;
+    background: var(--dark-surface);
+    border: 1.5px solid var(--primary-cyan);
+    border-radius: 0.7rem;
+    box-shadow: var(--glow-cyan);
+    transition: border-color var(--transition-smooth), box-shadow var(--transition-smooth);
+}
+
+.recipe-filter-section .form-select:focus, .search-section .form-select:focus {
+    border-color: var(--accent-pink);
+    box-shadow: var(--glow-pink);
+    outline: none;
+}
+
+.recipe-filter-section .form-select option, .search-section .form-select option {
+    color: #000000;
+    background: #ffffff;
+}
+
+.recipe-filter-section .form-control, .search-section .form-control {
+    color: #ffffff !important;
+    background: var(--dark-surface);
+    border: 1.5px solid var(--primary-cyan);
+    border-radius: 0.7rem;
+    box-shadow: var(--glow-cyan);
+    transition: border-color var(--transition-smooth), box-shadow var(--transition-smooth);
+}
+
+.recipe-filter-section .form-control:focus, .search-section .form-control:focus {
+    border-color: var(--accent-pink);
+    box-shadow: var(--glow-pink);
+    outline: none;
+}
+
+.recipe-filter-section .btn, .search-section .btn {
+    background: var(--gradient-primary);
+    color: #fff;
+    border: none;
+    border-radius: 0.7rem;
+    font-weight: 600;
+    box-shadow: var(--glow-cyan);
+    transition: background var(--transition-smooth), box-shadow var(--transition-smooth);
+}
+
+.recipe-filter-section .btn:hover, .search-section .btn:hover {
+    background: var(--gradient-secondary);
+    box-shadow: var(--glow-pink);
+}
+
+.recipe-filter-section .btn-outline-secondary, .search-section .btn-outline-secondary {
+    border: 1.5px solid var(--accent-pink);
+    color: var(--accent-pink);
+    background: transparent;
+    transition: background var(--transition-smooth), color var(--transition-smooth);
+}
+
+.recipe-filter-section .btn-outline-secondary:hover, .search-section .btn-outline-secondary:hover {
+    background: var(--accent-pink);
+    color: #fff;
+}
+
 /* Futuristic Buttons */
 .btn-primary {
     background: var(--gradient-primary);
@@ -746,6 +824,152 @@ body::before {
     background: rgba(0, 212, 255, 0.2);
     color: var(--primary-cyan);
     border: 1px solid rgba(0, 212, 255, 0.3);
+}
+
+/* Add Recipe Form Styles */
+.add-recipe-form {
+    background: var(--dark-card);
+    border-radius: 1.2rem;
+    box-shadow: var(--shadow-glass);
+    border: 1.5px solid var(--glass-border);
+    padding: 2.5rem 2.5rem 2rem 2.5rem;
+    margin: 2rem auto 2rem auto;
+    max-width: 600px;
+    color: var(--text-primary);
+    font-family: 'Space Grotesk', sans-serif;
+    transition: box-shadow var(--transition-smooth);
+}
+
+.add-recipe-form h2 {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-emphasis-color: transparent;
+    font-size: 2.2rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+}
+
+.add-recipe-form label {
+    color: var(--accent-pink);
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+    display: block;
+    letter-spacing: 0.02em;
+}
+
+.add-recipe-form input[type="text"],
+.add-recipe-form input[type="number"],
+.add-recipe-form textarea,
+.add-recipe-form select {
+    width: 100%;
+    padding: 0.7rem 1rem;
+    margin-bottom: 1.1rem;
+    border-radius: 0.7rem;
+    border: 1.5px solid var(--primary-cyan);
+    background: var(--dark-surface);
+    color: var(--text-primary);
+    font-size: 1rem;
+    box-shadow: var(--glow-cyan);
+    transition: border-color var(--transition-smooth), box-shadow var(--transition-smooth);
+}
+
+.add-recipe-form input[type="text"]:focus,
+.add-recipe-form input[type="number"]:focus,
+.add-recipe-form textarea:focus,
+.add-recipe-form select:focus {
+    border-color: var(--accent-pink);
+    box-shadow: var(--glow-pink);
+    outline: none;
+}
+
+.add-recipe-form button[type="submit"] {
+    width: 100%;
+    background: var(--gradient-primary);
+    color: #fff;
+    border: none;
+    border-radius: 0.7rem;
+    font-weight: 700;
+    font-size: 1.1rem;
+    padding: 0.9rem 0;
+    margin-top: 1.2rem;
+    box-shadow: var(--glow-cyan);
+    transition: background var(--transition-smooth), box-shadow var(--transition-smooth);
+    cursor: pointer;
+}
+
+.add-recipe-form button[type="submit"]:hover {
+    background: var(--gradient-secondary);
+    box-shadow: var(--glow-pink);
+}
+
+.add-recipe-form .error {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid #ef4444;
+    border-radius: 0.5rem;
+    padding: 0.7rem 1rem;
+    margin-bottom: 1.2rem;
+    text-align: center;
+    font-weight: 600;
+}
+
+.add-recipe-form .ingredient-row,
+.add-recipe-form .instruction-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 0.5rem;
+}
+
+.add-recipe-form .ingredient-row input,
+.add-recipe-form .instruction-row input {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+.add-recipe-form .ingredient-row button,
+.add-recipe-form .instruction-row button {
+    background: var(--accent-pink);
+    color: #fff;
+    border: none;
+    border-radius: 0.5rem;
+    padding: 0.4rem 0.8rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background var(--transition-smooth);
+}
+
+.add-recipe-form .ingredient-row button:hover,
+.add-recipe-form .instruction-row button:hover {
+    background: var(--primary-cyan);
+}
+
+.add-recipe-form input[type="file"] {
+    background: transparent;
+    color: var(--text-primary);
+    border: none;
+    margin-bottom: 1.1rem;
+}
+
+.added-recipes-list {
+    background: var(--dark-card);
+    border-radius: 1.2rem;
+    box-shadow: var(--shadow-glass);
+    border: 1.5px solid var(--glass-border);
+    padding: 2rem 2.5rem;
+    margin: 2rem auto 2rem auto;
+    max-width: 600px;
+    color: var(--text-primary);
+}
+
+.new-recipe-preview img {
+    border-radius: 0.7rem;
+    box-shadow: var(--glow-cyan);
+    margin-bottom: 1rem;
 }
 
 /* Responsive Design */

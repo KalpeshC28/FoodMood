@@ -24,9 +24,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'fallback-secret-key-for-dev')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = ['https://foodwish.onrender.com', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['foodwish.onrender.com', 'localhost', '127.0.0.1']
 
 
 # Application definition
@@ -55,7 +55,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 ROOT_URLCONF = 'foodwish.urls'
@@ -152,7 +151,6 @@ REST_FRAMEWORK = {
 # CORS settings for frontend access
 CORS_ALLOW_ALL_ORIGINS = True  # For development only
 CORS_ALLOW_CREDENTIALS = True
-
 CORS_ALLOWED_ORIGINS = [
     "https://foodwishfront.onrender.com",
 ]

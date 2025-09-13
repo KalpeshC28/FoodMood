@@ -4,6 +4,7 @@ from .views import (
     RecipeViewSet, CategoryViewSet, CuisineViewSet, DietViewSet,
     FavoriteViewSet, ShoppingListViewSet
 )
+from . import views
 
 router = DefaultRouter()
 router.register('recipes', RecipeViewSet)
@@ -15,4 +16,7 @@ router.register('shopping-list', ShoppingListViewSet, basename='shoppinglist')
 
 urlpatterns = [
     path('api/', include(router.urls)),
+    path('recipes/<int:recipe_id>/favorite/', views.add_favorite, name='add_favorite'),
+    path('recipes/<int:recipe_id>/unfavorite/', views.remove_favorite, name='remove_favorite'),
+    path('recipes/<int:recipe_id>/is_favorite/', views.is_favorite, name='is_favorite'),
 ]

@@ -51,6 +51,9 @@ class Recipe(models.Model):
     
     image = models.ImageField(upload_to='recipe_images/', blank=True, null=True)
     calories_per_serving = models.PositiveIntegerField(null=True, blank=True)
+    protein = models.FloatField(null=True, blank=True, help_text="Protein per serving (g)")
+    carbs = models.FloatField(null=True, blank=True, help_text="Carbohydrates per serving (g)")
+    fat = models.FloatField(null=True, blank=True, help_text="Fat per serving (g)")
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

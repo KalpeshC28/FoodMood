@@ -45,13 +45,12 @@ function RecipeDetail({ recipe, isOpen, onClose, currentUser }) {
 
     const handleServingsChange = async (newServings) => {
         if (newServings < 1 || newServings > 12) return;
-        
         setServings(newServings);
         setIsLoading(true);
-        
         try {
             const response = await apiService.getRecipeDetail(recipe.spoonacular_id || recipe.id, newServings);
-            setDetailedRecipe(response.recipe);
+            // Some APIs return {recipe: {...}}, some just {...}
+            setDetailedRecipe(response.recipe ? response.recipe : response);
         } catch (error) {
             console.error('Error adjusting servings:', error);
             helpers.showToast('Error adjusting servings', 'danger');
@@ -230,11 +229,8 @@ function RecipeDetail({ recipe, isOpen, onClose, currentUser }) {
                                 {/* Ingredients Tab */}
                                 {showIngredients && (
                                     <div className="ingredients-list">
-                                        <div className="d-flex justify-content-between align-items-center mb-3">
+                                        <div className="mb-3">
                                             <h5>Ingredients</h5>
-                                            <button className="btn btn-outline-primary btn-sm" onClick={createShoppingList}>
-                                                <i className="fas fa-shopping-cart me-2"></i>Add to Shopping List
-                                            </button>
                                         </div>
                                         {currentRecipe.ingredients && currentRecipe.ingredients.length > 0 ? (
                                             <div className="row">
@@ -323,55 +319,7 @@ function RecipeDetail({ recipe, isOpen, onClose, currentUser }) {
                                     </div>
                                 )}
 
-                                {/* Rating Section */}
-                                {currentUser && (
-                                    <div className="mt-4 p-3 bg-light rounded">
-                                        <h6>Rate This Recipe</h6>
-                                        <div className="rating-stars mb-2">
-                                            {[1, 2, 3, 4, 5].map(star => (
-                                                <i
-                                                    key={star}
-                                                    className={`fas fa-star star ${star <= userRating ? 'filled' : ''}`}
-                                                    onClick={() => setUserRating(star)}
-                                                ></i>
-                                            ))}
-                                        </div>
-                                        <textarea
-                                            className="form-control mb-2"
-                                            placeholder="Write a review (optional)..."
-                                            value={userReview}
-                                            onChange={(e) => setUserReview(e.target.value)}
-                                            rows="3"
-                                        ></textarea>
-                                        <button className="btn btn-primary btn-sm" onClick={handleRatingSubmit}>
-                                            Submit Rating
-                                        </button>
-                                    </div>
-                                )}
-
-                                {/* Reviews Section */}
-                                {ratings.length > 0 && (
-                                    <div className="mt-4">
-                                        <h6>Reviews</h6>
-                                        {ratings.slice(0, 5).map(rating => (
-                                            <div key={rating.id} className="border-bottom pb-2 mb-2">
-                                                <div className="d-flex justify-content-between">
-                                                    <strong>{rating.user}</strong>
-                                                    <div>
-                                                        {[1, 2, 3, 4, 5].map(star => (
-                                                            <i
-                                                                key={star}
-                                                                className={`fas fa-star ${star <= rating.rating ? 'text-warning' : 'text-muted'}`}
-                                                            ></i>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                                {rating.review && <p className="mb-1">{rating.review}</p>}
-                                                <small className="text-muted">{helpers.formatDate(rating.created_at)}</small>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
+                                {/* Rating and Reviews removed as requested */}
                             </>
                         )}
                     </div>

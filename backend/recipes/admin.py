@@ -35,7 +35,7 @@ class DietAdmin(admin.ModelAdmin):
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
-    list_display = ['title', 'author', 'category', 'cuisine', 'difficulty', 'prep_time', 'cook_time', 'created_at']
+    list_display = ['title', 'author', 'category', 'cuisine', 'difficulty', 'prep_time', 'cook_time', 'calories_per_serving', 'protein', 'carbs', 'fat', 'created_at']
     list_filter = ['category', 'cuisine', 'difficulty', 'diets', 'created_at']
     search_fields = ['title', 'description']
     filter_horizontal = ['diets']
@@ -49,7 +49,7 @@ class RecipeAdmin(admin.ModelAdmin):
             'fields': ('category', 'cuisine', 'diets')
         }),
         ('Cooking Details', {
-            'fields': ('prep_time', 'cook_time', 'servings', 'difficulty', 'calories_per_serving')
+            'fields': ('prep_time', 'cook_time', 'servings', 'difficulty', 'calories_per_serving', 'protein', 'carbs', 'fat')
         }),
     )
 
