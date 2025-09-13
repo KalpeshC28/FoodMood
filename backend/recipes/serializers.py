@@ -61,8 +61,8 @@ class RecipeListSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'title', 'description', 'author', 'category', 'cuisine',
             'prep_time', 'cook_time', 'total_time', 'servings', 'difficulty',
-            'image', 'calories_per_serving', 'average_rating', 'is_favorited',
-            'created_at'
+            'image', 'calories_per_serving', 'protein', 'carbs', 'fat',
+            'average_rating', 'is_favorited', 'created_at'
         ]
     
     def get_is_favorited(self, obj):
@@ -90,7 +90,8 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'title', 'description', 'author', 'category', 'cuisine', 'diets',
             'prep_time', 'cook_time', 'total_time', 'servings', 'difficulty',
-            'image', 'calories_per_serving', 'ingredients', 'instructions',
+            'image', 'calories_per_serving', 'protein', 'carbs', 'fat',
+            'ingredients', 'instructions',
             'ratings', 'average_rating', 'is_favorited', 'created_at', 'updated_at'
         ]
     
@@ -102,6 +103,43 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
 
 
 class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
+    def validate(self, data):
+        errors = {}
+        # Validate non-negative nutrition fields
+        for field in ['calories_per_serving', 'protein', 'carbs', 'fat']:
+            value = data.get(field)
+            if value is not None:
+                try:
+                    if float(value) < 0:
+                        errors[field] = 'This value must be non-negative.'
+                except Exception:
+                    errors[field] = 'This value must be a number.'
+        if errors:
+            raise serializers.ValidationError(errors)
+        return data
+    def to_internal_value(self, data):
+        # If multipart, parse ingredients/instructions from JSON string
+        import json
+        # Convert QueryDict to dict, flattening single-value fields
+        data_dict = {}
+        for k, v in data.items():
+            # diet_ids can be multi-value, keep as list
+            if k == 'diet_ids':
+                data_dict[k] = data.getlist(k)
+            else:
+                data_dict[k] = v[0] if isinstance(v, list) else v
+        print('DEBUG: incoming data to serializer (flattened):', data_dict)
+        def extract_json_field(field):
+            val = data_dict.get(field)
+            if isinstance(val, str):
+                try:
+                    return json.loads(val)
+                except Exception as e:
+                    print(f'DEBUG: error parsing {field}:', e)
+            return val
+        data_dict['ingredients'] = extract_json_field('ingredients')
+        data_dict['instructions'] = extract_json_field('instructions')
+        return super().to_internal_value(data_dict)
     # No custom to_internal_value needed for JSON POST
     """Serializer for creating and updating recipes"""
     ingredients = IngredientSerializer(many=True)
@@ -117,7 +155,8 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         fields = [
             'title', 'description', 'category', 'cuisine', 'diet_ids',
             'prep_time', 'cook_time', 'servings', 'difficulty',
-            'image', 'calories_per_serving', 'ingredients', 'instructions'
+            'image', 'calories_per_serving', 'protein', 'carbs', 'fat',
+            'ingredients', 'instructions'
         ]
 
     def create(self, validated_data):

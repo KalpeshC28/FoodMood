@@ -57,6 +57,9 @@ const AddRecipeForm = ({ onRecipeAdded }) => {
         servings: '',
         difficulty: 'medium',
         calories_per_serving: '',
+        protein: '',
+        carbs: '',
+        fat: '',
         image: null,
     });
     const [ingredients, setIngredients] = useState([
@@ -143,7 +146,7 @@ const AddRecipeForm = ({ onRecipeAdded }) => {
             return;
         }
 
-        // Build JSON object for backend
+        // Build data for backend
         let dietIdsArr = toNumberArray(formData.diets);
         if (!Array.isArray(dietIdsArr)) dietIdsArr = [dietIdsArr];
         let ingredientsArr = filteredIngredients.map(ing => ({
@@ -158,45 +161,56 @@ const AddRecipeForm = ({ onRecipeAdded }) => {
         }));
         if (!Array.isArray(instructionsArr)) instructionsArr = [instructionsArr];
 
-        const recipeData = {
-            title: formData.title,
-            description: formData.description,
-            category: Number(formData.category),
-            cuisine: Number(formData.cuisine),
-            prep_time: Number(formData.prep_time),
-            cook_time: Number(formData.cook_time),
-            servings: Number(formData.servings),
-            difficulty: formData.difficulty,
-            calories_per_serving: formData.calories_per_serving ? Number(formData.calories_per_serving) : null,
-            diet_ids: dietIdsArr,
-            ingredients: ingredientsArr,
-            instructions: instructionsArr,
-        };
-
-        // Final safety: force arrays for backend
-        if (!Array.isArray(recipeData.diet_ids)) recipeData.diet_ids = [recipeData.diet_ids].filter(v => v !== undefined && v !== null);
-        if (!Array.isArray(recipeData.ingredients)) recipeData.ingredients = [recipeData.ingredients];
-        if (!Array.isArray(recipeData.instructions)) recipeData.instructions = [recipeData.instructions];
-
-    // Ensure diet_ids is always an array of numbers
-    let dietIdsArrForForm = recipeData.diet_ids;
-    if (!Array.isArray(dietIdsArrForForm)) dietIdsArrForForm = [dietIdsArrForForm];
-    dietIdsArrForForm = dietIdsArrForForm.map(x => Number(x)).filter(x => !isNaN(x));
-    recipeData.diet_ids = dietIdsArrForForm;
-
-        // Debug log for recipeData
-        console.log('Submitting recipeData:', recipeData);
+        // If image is present, use FormData
+        let body, headers = {};
+        if (formData.image) {
+            body = new window.FormData();
+            body.append('title', formData.title);
+            body.append('description', formData.description);
+            body.append('category', formData.category);
+            body.append('cuisine', formData.cuisine);
+            body.append('prep_time', formData.prep_time);
+            body.append('cook_time', formData.cook_time);
+            body.append('servings', formData.servings);
+            body.append('difficulty', formData.difficulty);
+            if (formData.calories_per_serving) body.append('calories_per_serving', formData.calories_per_serving);
+            if (formData.protein) body.append('protein', formData.protein);
+            if (formData.carbs) body.append('carbs', formData.carbs);
+            if (formData.fat) body.append('fat', formData.fat);
+            dietIdsArr.forEach(id => body.append('diet_ids', id));
+            body.append('ingredients', JSON.stringify(ingredientsArr));
+            body.append('instructions', JSON.stringify(instructionsArr));
+            body.append('image', formData.image);
+            // Do not set Content-Type header
+        } else {
+            body = JSON.stringify({
+                title: formData.title,
+                description: formData.description,
+                category: Number(formData.category),
+                cuisine: Number(formData.cuisine),
+                prep_time: Number(formData.prep_time),
+                cook_time: Number(formData.cook_time),
+                servings: Number(formData.servings),
+                difficulty: formData.difficulty,
+                calories_per_serving: formData.calories_per_serving ? Number(formData.calories_per_serving) : null,
+                protein: formData.protein ? Number(formData.protein) : null,
+                carbs: formData.carbs ? Number(formData.carbs) : null,
+                fat: formData.fat ? Number(formData.fat) : null,
+                diet_ids: dietIdsArr,
+                ingredients: ingredientsArr,
+                instructions: instructionsArr,
+            });
+            headers['Content-Type'] = 'application/json';
+        }
 
         try {
             const user = localStorage.getItem('foodmood_user');
             const token = user ? JSON.parse(user).token : null;
+            if (token) headers.Authorization = `Token ${token}`;
             const response = await fetch('http://localhost:8000/api/recipes/', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: token ? `Token ${token}` : undefined,
-                },
-                body: JSON.stringify(recipeData),
+                headers,
+                body,
             });
             if (!response.ok) {
                 const errData = await response.json();
@@ -267,6 +281,20 @@ const AddRecipeForm = ({ onRecipeAdded }) => {
         <div>
             <label>Calories per Serving</label>
             <input type="number" name="calories_per_serving" value={formData.calories_per_serving} onChange={handleChange} />
+        </div>
+        <div style={{ display: 'flex', gap: '1rem' }}>
+            <div>
+                <label>Protein (g)</label>
+                <input type="number" name="protein" value={formData.protein} onChange={handleChange} min="0" step="any" />
+            </div>
+            <div>
+                <label>Carbs (g)</label>
+                <input type="number" name="carbs" value={formData.carbs} onChange={handleChange} min="0" step="any" />
+            </div>
+            <div>
+                <label>Fat (g)</label>
+                <input type="number" name="fat" value={formData.fat} onChange={handleChange} min="0" step="any" />
+            </div>
         </div>
         <div>
             <label>Ingredients</label>

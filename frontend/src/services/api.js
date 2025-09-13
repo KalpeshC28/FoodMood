@@ -95,11 +95,36 @@ export const getRandomRecipes = async (count = 6) => {
 
 export const createRecipe = async (recipeData) => {
     try {
-        const recipe = await apiRequest('/recipes/', {
+        let body, headers = {};
+        // If image is present, use FormData
+        if (recipeData.image) {
+            body = new FormData();
+            Object.entries(recipeData).forEach(([key, value]) => {
+                if (value !== undefined && value !== null) {
+                    if (Array.isArray(value)) {
+                        value.forEach((v, i) => body.append(`${key}[${i}]`, v));
+                    } else {
+                        body.append(key, value);
+                    }
+                }
+            });
+            // Don't set Content-Type, browser will set it
+        } else {
+            body = JSON.stringify(recipeData);
+            headers['Content-Type'] = 'application/json';
+        }
+        const token = getAuthToken();
+        if (token) headers.Authorization = `Token ${token}`;
+        const response = await fetch(`${API_BASE_URL}/recipes/`, {
             method: 'POST',
-            body: JSON.stringify(recipeData)
+            headers,
+            body
         });
-        return recipe;
+        if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(errData.detail || errData.error || `HTTP ${response.status}`);
+        }
+        return await response.json();
     } catch (error) {
         console.error('Create recipe error:', error);
         throw error;

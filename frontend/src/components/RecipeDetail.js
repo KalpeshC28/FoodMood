@@ -293,19 +293,19 @@ function RecipeDetail({ recipe, isOpen, onClose, currentUser }) {
                                                 </div>
                                                 <div className="col-md-3">
                                                     <div className="nutrition-item text-center p-3 border rounded">
-                                                        <div className="nutrition-value h4 text-success">-</div>
+                                                        <div className="nutrition-value h4 text-success">{currentRecipe.protein !== undefined && currentRecipe.protein !== null ? currentRecipe.protein + 'g' : '-'}</div>
                                                         <div className="nutrition-label">Protein</div>
                                                     </div>
                                                 </div>
                                                 <div className="col-md-3">
                                                     <div className="nutrition-item text-center p-3 border rounded">
-                                                        <div className="nutrition-value h4 text-warning">-</div>
+                                                        <div className="nutrition-value h4 text-warning">{currentRecipe.carbs !== undefined && currentRecipe.carbs !== null ? currentRecipe.carbs + 'g' : '-'}</div>
                                                         <div className="nutrition-label">Carbs</div>
                                                     </div>
                                                 </div>
                                                 <div className="col-md-3">
                                                     <div className="nutrition-item text-center p-3 border rounded">
-                                                        <div className="nutrition-value h4 text-info">-</div>
+                                                        <div className="nutrition-value h4 text-info">{currentRecipe.fat !== undefined && currentRecipe.fat !== null ? currentRecipe.fat + 'g' : '-'}</div>
                                                         <div className="nutrition-label">Fat</div>
                                                     </div>
                                                 </div>
