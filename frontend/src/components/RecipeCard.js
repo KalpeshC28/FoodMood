@@ -1,24 +1,14 @@
 import React from 'react';
 import * as helpers from '../utils/helpers';
-import { useState, useEffect } from 'react';
-import { addFavorite, removeFavorite, isFavorite as isFavoriteApi } from '../services/api';
-
-function RecipeCard({ recipe, onViewDetails, user, token }) {
-    const [favorite, setFavorite] = useState(false);
 
 
-            useEffect(() => {
-                isFavoriteApi(recipe.id)
-                    .then(res => setFavorite(res.favorite))
-                    .catch(() => setFavorite(false));
-            }, [recipe.id]);
-
-            const handleFavorite = () => {
-                const action = favorite ? removeFavorite : addFavorite;
-                action(recipe.id)
-                    .then(() => setFavorite(!favorite))
-                    .catch(() => {});
-            };
+function RecipeCard({ recipe, onViewDetails, isFavorited, onToggleFavorite }) {
+    const handleFavorite = (e) => {
+        e.stopPropagation();
+        if (onToggleFavorite) {
+            onToggleFavorite(recipe.spoonacular_id || recipe.id);
+        }
+    };
 
     const handleViewDetails = () => {
         if (onViewDetails) {
@@ -63,10 +53,10 @@ function RecipeCard({ recipe, onViewDetails, user, token }) {
                             </span>
                         )}
                                     <button
-                                        className={`btn btn-sm favorite-btn ${favorite ? 'favorite' : ''}`}
+                                        className={`btn btn-sm favorite-btn ${isFavorited ? 'favorite' : ''}`}
                                         onClick={handleFavorite}
                                     >
-                                        <i className={`${favorite ? 'fas' : 'far'} fa-heart`}></i>
+                                        <i className={`${isFavorited ? 'fas' : 'far'} fa-heart`}></i>
                                     </button>
                     </div>
                 </div>

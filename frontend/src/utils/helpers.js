@@ -1,3 +1,24 @@
+// Add a search query to localStorage-based search history
+export function addSearchToHistory(query) {
+    const stored = localStorage.getItem('search_history');
+    let arr = [];
+    if (stored) {
+        try {
+            arr = JSON.parse(stored);
+        } catch (e) { arr = []; }
+    }
+    const newItem = {
+        id: Date.now(),
+        query,
+        created_at: new Date().toISOString()
+    };
+    // Remove duplicates (keep most recent)
+    arr = arr.filter(item => item.query !== query);
+    arr.unshift(newItem);
+    // Limit to 20
+    arr = arr.slice(0, 20);
+    localStorage.setItem('search_history', JSON.stringify(arr));
+}
 // Helpers with all required functions
 export function showToast(msg, type) { 
     console.log(`${type}: ${msg}`); 

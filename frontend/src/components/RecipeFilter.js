@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import * as helpers from "../utils/helpers";
+import { addSearchToHistory } from "../utils/helpers";
 
 function RecipeFilter({ onFilterChange, onSearch, isLoading = false }) {
     const [filters, setFilters] = useState({
@@ -18,6 +19,9 @@ function RecipeFilter({ onFilterChange, onSearch, isLoading = false }) {
 
     const handleSearch = (e) => {
         e.preventDefault();
+        if (filters.query && filters.query.trim() !== "") {
+            addSearchToHistory(filters.query);
+        }
         onSearch(filters);
     };
 

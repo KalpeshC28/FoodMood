@@ -1,11 +1,31 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import * as helpers from "../utils/helpers";
+import { addSearchToHistory } from "../utils/helpers";
 
 function UserHistory({ isOpen, onClose, onSelectSearch }) {
-    const [history] = useState([
-        { id: 1, query: "pasta recipes", created_at: new Date() },
-        { id: 2, query: "vegetarian meals", created_at: new Date() }
-    ]);
+    const [history, setHistory] = useState([]);
+
+    // Load history from localStorage on mount
+    useEffect(() => {
+        const stored = localStorage.getItem('search_history');
+        if (stored) {
+            try {
+                const parsed = JSON.parse(stored);
+                setHistory(parsed.map(item => ({
+                    ...item,
+                    created_at: new Date(item.created_at)
+                })));
+            } catch (e) {
+                setHistory([]);
+            }
+        }
+    }, []);
+
+    // Helper to clear history
+    const handleClearHistory = () => {
+        localStorage.removeItem('search_history');
+        setHistory([]);
+    };
 
     const handleSearchSelect = (historyItem) => {
         const searchParams = {
@@ -18,6 +38,8 @@ function UserHistory({ isOpen, onClose, onSelectSearch }) {
         onSelectSearch(searchParams);
         onClose();
     };
+
+
 
     if (!isOpen) return null;
 
@@ -45,7 +67,9 @@ function UserHistory({ isOpen, onClose, onSelectSearch }) {
                                     <i className="fas fa-info-circle me-2"></i>
                                     Click on any search to repeat it
                                 </p>
-                                
+                                <button className="btn btn-sm btn-outline-danger mb-3" onClick={handleClearHistory} type="button">
+                                    <i className="fas fa-trash me-1"></i>Clear History
+                                </button>
                                 {history.map(item => (
                                     <div 
                                         key={item.id} 

@@ -78,7 +78,9 @@ function App() {
     const loadFavorites = async () => {
         try {
             const response = await apiService.getFavorites();
-            setFavorites(response.favorites || []);
+            // If favorites are Favorite objects, extract the recipe field
+            const favs = (response.favorites || []).map(fav => fav.recipe ? fav.recipe : fav);
+            setFavorites(favs);
         } catch (error) {
             console.error('Error loading favorites:', error);
         }
