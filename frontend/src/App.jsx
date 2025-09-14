@@ -1,4 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
+import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from "react-router-dom";
+import { AuthContext } from "./AuthContext";
+import Login from "./Login";
 import ReactDOM from "react-dom/client";
 import RecipeCard from "./components/RecipeCard";
 import RecipeDetail from "./components/RecipeDetail";
@@ -34,6 +37,8 @@ function ParticleBackground() {
 
 // Main App Component
 function App() {
+    // AuthContext
+    const { token, login, logout } = useContext(AuthContext);
     // State management
     const [currentUser, setCurrentUser] = useState(null);
     const [recipes, setRecipes] = useState([]);
@@ -44,9 +49,6 @@ function App() {
     const [selectedRecipe, setSelectedRecipe] = useState(null);
     const [showRecipeDetail, setShowRecipeDetail] = useState(false);
     const [showHistory, setShowHistory] = useState(false);
-    const [currentView, setCurrentView] = useState('search');
-    // Add a view for adding recipes
-    const handleShowAddRecipe = () => setCurrentView('add-recipe');
     const [searchFilters, setSearchFilters] = useState({
         query: '',
         cuisine: '',
@@ -57,27 +59,29 @@ function App() {
 
     // Initialize app
     useEffect(() => {
-        initializeApp();
-    }, []);
-
-    const initializeApp = async () => {
-        try {
-            const response = await apiService.getCurrentUser();
-            if (response.user) {
-                setCurrentUser(response.user);
-                loadFavorites();
+        const initializeApp = async () => {
+            if (token) {
+                try {
+                    // Fetch user profile with token
+                    const response = await apiService.getCurrentUser(token);
+                    if (response.user) {
+                        setCurrentUser(response.user);
+                        loadFavorites(token);
+                    }
+                } catch (error) {
+                    setCurrentUser(null);
+                }
+            } else {
+                setCurrentUser(null);
             }
-        } catch (error) {
-            console.log('User not authenticated');
-        }
-        
-        // Load initial recipes
-        performSearch();
-    };
+            performSearch();
+        };
+        initializeApp();
+    }, [token]);
 
-    const loadFavorites = async () => {
+    const loadFavorites = async (tokenOverride) => {
         try {
-            const response = await apiService.getFavorites();
+            const response = await apiService.getFavorites(tokenOverride || token);
             // If favorites are Favorite objects, extract the recipe field
             const favs = (response.favorites || []).map(fav => fav.recipe ? fav.recipe : fav);
             setFavorites(favs);
@@ -87,25 +91,29 @@ function App() {
     };
 
     // Authentication functions
+    // Used by AuthModal (legacy)
     const handleLogin = async (credentials) => {
         try {
             const response = await apiService.login(credentials);
-            setCurrentUser(response.user);
-            setShowAuthModal(false);
-            helpers.showToast('Welcome back! 🎉', 'success');
-            loadFavorites();
+            if (response.token) {
+                login(response.token);
+                setShowAuthModal(false);
+                helpers.showToast('Welcome back! 🎉', 'success');
+            }
         } catch (error) {
             throw error;
         }
     };
 
+    // Used by AuthModal (legacy)
     const handleRegister = async (userData) => {
         try {
             const response = await apiService.register(userData);
-            setCurrentUser(response.user);
-            setShowAuthModal(false);
-            helpers.showToast('Welcome to FoodMood! 🍳', 'success');
-            loadFavorites();
+            if (response.token) {
+                login(response.token);
+                setShowAuthModal(false);
+                helpers.showToast('Welcome to FoodMood! 🍳', 'success');
+            }
         } catch (error) {
             throw error;
         }
@@ -114,6 +122,7 @@ function App() {
     const handleLogout = async () => {
         try {
             await apiService.logout();
+            logout();
             setCurrentUser(null);
             setFavorites([]);
             helpers.showToast('See you soon! 👋', 'success');
@@ -180,6 +189,7 @@ function App() {
     };
 
     // UI event handlers
+    const navigate = useNavigate();
     const handleFilterChange = (newFilters) => {
         setSearchFilters(newFilters);
     };
@@ -187,7 +197,7 @@ function App() {
     const handleSearch = (filters) => {
         setSearchFilters(filters);
         performSearch(filters);
-        setCurrentView('search');
+        // No setCurrentView needed with React Router
     };
 
     const handleRecipeSelect = (recipe) => {
@@ -198,58 +208,38 @@ function App() {
     const handleHistorySelect = (searchParams) => {
         setSearchFilters(searchParams);
         performSearch(searchParams);
-        setCurrentView('search');
+        // No setCurrentView needed with React Router
     };
-
-    const displayedRecipes = currentView === 'favorites' ? favorites : recipes;
 
     return (
         <>
             <div className="App">
                 <ParticleBackground />
-                
                 {/* Navigation */}
                 <nav className="navbar navbar-expand-lg">
                     <div className="container">
-                        <a className="navbar-brand clickable" href="#">
+                        <Link className="navbar-brand clickable" to="/">
                             <i className="fas fa-utensils me-2"></i>
                             FoodMood
-                        </a>
-                        
+                        </Link>
                         <div className="navbar-nav ms-auto">
-                            <button 
-                                className={`nav-link btn btn-link ${currentView === 'search' ? 'active' : ''}`}
-                                onClick={() => setCurrentView('search')}
-                            >
+                            <Link className="nav-link btn btn-link" to="/">
                                 <i className="fas fa-search me-2"></i>Search
-                            </button>
-                            
+                            </Link>
                             {currentUser && (
                                 <>
-                                    <button 
-                                        className={`nav-link btn btn-link ${currentView === 'favorites' ? 'active' : ''}`}
-                                        onClick={() => setCurrentView('favorites')}
-                                    >
+                                    <Link className="nav-link btn btn-link" to="/favorites">
                                         <i className={`fas fa-heart me-2 ${favorites.length > 0 ? 'heart-animate' : ''}`}></i>
                                         Favorites ({favorites.length})
-                                    </button>
-                                    <button 
-                                        className="nav-link btn btn-link"
-                                        onClick={() => setShowHistory(true)}
-                                    >
+                                    </Link>
+                                    <button className="nav-link btn btn-link" onClick={() => setShowHistory(true)}>
                                         <i className="fas fa-history me-2"></i>History
                                     </button>
-                                    <button 
-                                        className={`nav-link btn btn-link ${currentView === 'add-recipe' ? 'active' : ''}`}
-                                        onClick={handleShowAddRecipe}
-                                    >
+                                    <Link className="nav-link btn btn-link" to="/add">
                                         <i className="fas fa-plus me-2"></i>Add Recipe
-                                    </button>
+                                    </Link>
                                     <div className="nav-item dropdown">
-                                        <button 
-                                            className="nav-link dropdown-toggle btn btn-link" 
-                                            data-bs-toggle="dropdown"
-                                        >
+                                        <button className="nav-link dropdown-toggle btn btn-link" data-bs-toggle="dropdown">
                                             <i className="fas fa-user me-2"></i>{currentUser.username}
                                         </button>
                                         <ul className="dropdown-menu glass">
@@ -262,119 +252,115 @@ function App() {
                                     </div>
                                 </>
                             )}
-                            
                             {!currentUser && (
-                                <button 
-                                    className="btn btn-outline-light"
-                                    onClick={() => {
-                                        setAuthMode('login');
-                                        setShowAuthModal(true);
-                                    }}
-                                >
+                                <button className="btn btn-outline-light" onClick={() => { setAuthMode('login'); setShowAuthModal(true); }}>
                                     <i className="fas fa-sign-in-alt me-2"></i>Login
                                 </button>
                             )}
                         </div>
                     </div>
                 </nav>
-
-                {/* Hero Section */}
-                {currentView === 'search' && (
-                    <section className="hero-section">
+                <Routes>
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/" element={
+                        <>
+                            <section className="hero-section">
+                                <div className="container">
+                                    <div className="hero-content">
+                                        <h1 className="hero-title">Discover Amazing Recipes ✨</h1>
+                                        <p className="hero-subtitle">
+                                            🍳 Find delicious recipes from around the world, adjust serving sizes, 
+                                            and save your favorites! 🌟
+                                        </p>
+                                    </div>
+                                </div>
+                            </section>
+                            <div className="container">
+                                <RecipeFilter onFilterChange={handleFilterChange} onSearch={handleSearch} isLoading={isLoading} />
+                                {isLoading && (
+                                    <div className="loading">
+                                        <div className="spinner-border mb-3"></div>
+                                        <p>🔍 Searching for delicious recipes...</p>
+                                    </div>
+                                )}
+                                {!isLoading && recipes.length > 0 && (
+                                    <div className="recipe-grid">
+                                        {recipes.map(recipe => (
+                                            <div key={recipe.id || recipe.spoonacular_id} className="recipe-card">
+                                                <RecipeCard
+                                                    recipe={recipe}
+                                                    onViewDetails={handleRecipeSelect}
+                                                    onToggleFavorite={handleToggleFavorite}
+                                                    isFavorited={isFavorited(recipe.spoonacular_id || recipe.id)}
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                                {!isLoading && recipes.length === 0 && (
+                                    <div className="text-center py-5">
+                                        <i className="fas fa-search fa-3x text-white mb-3"></i>
+                                        <h4 className="text-white">Start Your Culinary Journey! 🚀</h4>
+                                        <p className="text-white opacity-75">
+                                            🥘 Use the search above to find recipes by ingredients, cuisine, or meal type.
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        </>
+                    } />
+                    <Route path="/favorites" element={
                         <div className="container">
-                            <div className="hero-content">
-                                <h1 className="hero-title">Discover Amazing Recipes ✨</h1>
-                                <p className="hero-subtitle">
-                                    🍳 Find delicious recipes from around the world, adjust serving sizes, 
-                                    and save your favorites! 🌟
+                            <div className="text-center mb-4">
+                                <h2>
+                                    <i className="fas fa-heart text-danger me-2 heart-animate"></i>
+                                    Your Favorite Recipes ❤️
+                                </h2>
+                                <p className="text-muted">
+                                    {favorites.length === 0 ?
+                                        '🍽️ No favorites yet. Start searching and save recipes you love!' :
+                                        `🎉 You have ${favorites.length} favorite recipe${favorites.length !== 1 ? 's' : ''}`
+                                    }
                                 </p>
                             </div>
-                        </div>
-                    </section>
-                )}
-
-                {/* Main Content */}
-                <div className="container">
-                    {currentView === 'add-recipe' && (
-                        <AddRecipePage />
-                    )}
-                    {currentView === 'search' && (
-                        <>
-                            <RecipeFilter 
-                                onFilterChange={handleFilterChange}
-                                onSearch={handleSearch}
-                                isLoading={isLoading}
-                            />
-                        </>
-                    )}
-
-                    {currentView === 'favorites' && (
-                        <div className="text-center mb-4">
-                            <h2>
-                                <i className="fas fa-heart text-danger me-2 heart-animate"></i>
-                                Your Favorite Recipes ❤️
-                            </h2>
-                            <p className="text-muted">
-                                {favorites.length === 0 ? 
-                                    '🍽️ No favorites yet. Start searching and save recipes you love!' :
-                                    `🎉 You have ${favorites.length} favorite recipe${favorites.length !== 1 ? 's' : ''}`
-                                }
-                            </p>
-                        </div>
-                    )}
-
-                    {/* Loading State */}
-                    {isLoading && (
-                        <div className="loading">
-                            <div className="spinner-border mb-3"></div>
-                            <p>🔍 Searching for delicious recipes...</p>
-                        </div>
-                    )}
-
-                    {/* Recipe Grid */}
-                    {!isLoading && displayedRecipes.length > 0 && (
-                        <div className="recipe-grid">
-                            {displayedRecipes.map(recipe => (
-                                <div key={recipe.id || recipe.spoonacular_id} className="recipe-card">
-                                    <RecipeCard
-                                        recipe={recipe}
-                                        onViewDetails={handleRecipeSelect}
-                                        onToggleFavorite={handleToggleFavorite}
-                                        isFavorited={isFavorited(recipe.spoonacular_id || recipe.id)}
-                                    />
+                            {isLoading && (
+                                <div className="loading">
+                                    <div className="spinner-border mb-3"></div>
+                                    <p>🔍 Loading favorites...</p>
                                 </div>
-                            ))}
+                            )}
+                            {!isLoading && favorites.length > 0 && (
+                                <div className="recipe-grid">
+                                    {favorites.map(recipe => (
+                                        <div key={recipe.id || recipe.spoonacular_id} className="recipe-card">
+                                            <RecipeCard
+                                                recipe={recipe}
+                                                onViewDetails={handleRecipeSelect}
+                                                onToggleFavorite={handleToggleFavorite}
+                                                isFavorited={isFavorited(recipe.spoonacular_id || recipe.id)}
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                            {!isLoading && favorites.length === 0 && (
+                                <div className="text-center py-5">
+                                    <i className="fas fa-heart fa-3x text-white mb-3"></i>
+                                    <h4 className="text-white">No Favorites Yet 💫</h4>
+                                    <p className="text-white opacity-75">
+                                        ✨ Start searching for recipes and click the heart icon to save your favorites.
+                                    </p>
+                                    <Link className="btn btn-primary clickable" to="/">
+                                        <i className="fas fa-search me-2"></i>Search Recipes 🍳
+                                    </Link>
+                                </div>
+                            )}
                         </div>
-                    )}
-
-                    {/* Empty State */}
-                    {!isLoading && displayedRecipes.length === 0 && currentView === 'search' && (
-                        <div className="text-center py-5">
-                            <i className="fas fa-search fa-3x text-white mb-3"></i>
-                            <h4 className="text-white">Start Your Culinary Journey! 🚀</h4>
-                            <p className="text-white opacity-75">
-                                🥘 Use the search above to find recipes by ingredients, cuisine, or meal type.
-                            </p>
-                        </div>
-                    )}
-
-                    {!isLoading && favorites.length === 0 && currentView === 'favorites' && (
-                        <div className="text-center py-5">
-                            <i className="fas fa-heart fa-3x text-white mb-3"></i>
-                            <h4 className="text-white">No Favorites Yet 💫</h4>
-                            <p className="text-white opacity-75">
-                                ✨ Start searching for recipes and click the heart icon to save your favorites.
-                            </p>
-                            <button 
-                                className="btn btn-primary clickable"
-                                onClick={() => setCurrentView('search')}
-                            >
-                                <i className="fas fa-search me-2"></i>Search Recipes 🍳
-                            </button>
-                        </div>
-                    )}
-                </div>
-
+                    } />
+                    <Route path="/add" element={
+                        <AddRecipePage onRecipeAdded={() => { performSearch(); if (navigate) navigate('/'); }} />
+                    } />
+                </Routes>
                 {/* Modals */}
                 {showAuthModal && (
                     <AuthModal
@@ -386,14 +372,12 @@ function App() {
                         onSwitchMode={(mode) => setAuthMode(mode)}
                     />
                 )}
-
                 <RecipeDetail
                     recipe={selectedRecipe}
                     isOpen={showRecipeDetail}
                     onClose={() => setShowRecipeDetail(false)}
                     currentUser={currentUser}
                 />
-
                 <UserHistory
                     isOpen={showHistory}
                     onClose={() => setShowHistory(false)}
@@ -406,15 +390,15 @@ function App() {
                 marginTop: '3rem',
                 padding: '1.5rem 0',
                 background: 'rgba(0,0,0,0.15)',
-                color: '#fff',
+                color: '#000000ff',
                 fontFamily: 'JetBrains Mono, monospace',
                 fontSize: '1.1rem',
                 letterSpacing: '0.04em',
-                borderTop: '1.5px solid #6366f1',
+                borderTop: '1.5px solid #0084ffff',
                 boxShadow: '0 -2px 16px 0 #6366f133',
             }}>
                 <span>
-                    © {new Date().getFullYear()} | Made with ❤️ by <a href="https://github.com/KalpeshC28" target="_blank" rel="noopener noreferrer" style={{color: '#00d4ff', textDecoration: 'underline'}}>KalpeshC28</a>
+                    © {new Date().getFullYear()} | Made with ❤️ by <a href="https://github.com/KalpeshC28" target="_blank" rel="noopener noreferrer" style={{color: '#e5ff00ff', textDecoration: 'underline'}}>KalpeshC28</a>
                 </span>
             </footer>
         </>

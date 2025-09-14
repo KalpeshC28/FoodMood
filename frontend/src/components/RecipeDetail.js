@@ -99,8 +99,8 @@ function RecipeDetail({ recipe, isOpen, onClose, currentUser }) {
 
     const currentRecipe = detailedRecipe || recipe;
 
-    return (
-        <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+        return (
+        <div className="modal show d-block" style={{ backgroundColor: 'rgba(255, 255, 255, 0.5)' }}>
             <div className="modal-dialog modal-xl modal-dialog-scrollable">
                 <div className="modal-content">
                     <div className="modal-header">
@@ -118,15 +118,27 @@ function RecipeDetail({ recipe, isOpen, onClose, currentUser }) {
 
                         {!isLoading && (
                             <>
-                                {/* Recipe Image */}
-                                {currentRecipe.image && (
-                                    <img 
-                                        src={currentRecipe.image} 
-                                        alt={currentRecipe.title}
-                                        className="recipe-detail-image mb-3 img-fluid rounded"
-                                        style={{ width: '50%', maxHeight: '300px', objectFit: 'cover' }}
-                                    />
-                                )}
+                                {/* Recipe Image and Title Side by Side */}
+
+                                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '2rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
+                                    {currentRecipe.image && (
+                                        <img 
+                                            src={currentRecipe.image} 
+                                            alt={currentRecipe.title}
+                                            className="recipe-detail-image mb-3 img-fluid rounded"
+                                            style={{ width: '320px', maxWidth: '100%', maxHeight: '260px', objectFit: 'cover', flex: '0 0 auto' }}
+                                        />
+                                    )}
+                                    <div style={{ flex: '1 1 0', minWidth: 0 }}>
+                                        {/* Recipe title removed as requested */}
+                                        {currentRecipe.description && (
+                                            <div className="mb-3" style={{ marginTop: '1rem' }}>
+                                                <h5 style={{ fontWeight: 600 }}>About This Recipe</h5>
+                                                <p style={{ marginBottom: 0 }}>{currentRecipe.description}</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
 
                                 {/* Recipe Meta */}
                                 <div className="row mb-4">
@@ -178,13 +190,7 @@ function RecipeDetail({ recipe, isOpen, onClose, currentUser }) {
                                     </div>
                                 </div>
 
-                                {/* Recipe Summary */}
-                                {currentRecipe.description && (
-                                    <div className="mb-4">
-                                        <h5>About This Recipe</h5>
-                                        <p>{currentRecipe.description}</p>
-                                    </div>
-                                )}
+
 
                                 {/* Navigation Tabs */}
                                 <ul className="nav nav-tabs mb-3">

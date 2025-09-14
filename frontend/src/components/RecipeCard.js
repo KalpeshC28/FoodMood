@@ -45,6 +45,20 @@ function RecipeCard({ recipe, onViewDetails, isFavorited, onToggleFavorite }) {
     return (
         <div className="recipe-card h-100">
             <div className="card-image-container position-relative">
+                <img
+                    src={recipe.image}
+                    alt={recipe.title}
+                    className="recipe-card-img"
+                    style={{
+                        width: '100%',
+                        height: '200px',
+                        objectFit: 'cover',
+                        borderTopLeftRadius: '1rem',
+                        borderTopRightRadius: '1rem',
+                        display: 'block'
+                    }}
+                    loading="lazy"
+                />
                 <div className="recipe-overlay">
                     <div className="recipe-overlay-content">
                         {recipe.difficulty && (
@@ -52,12 +66,12 @@ function RecipeCard({ recipe, onViewDetails, isFavorited, onToggleFavorite }) {
                                 {helpers.capitalize(recipe.difficulty)}
                             </span>
                         )}
-                                    <button
-                                        className={`btn btn-sm favorite-btn ${isFavorited ? 'favorite' : ''}`}
-                                        onClick={handleFavorite}
-                                    >
-                                        <i className={`${isFavorited ? 'fas' : 'far'} fa-heart`}></i>
-                                    </button>
+                        <button
+                            className={`btn btn-sm favorite-btn ${isFavorited ? 'favorite' : ''}`}
+                            onClick={handleFavorite}
+                        >
+                            <i className={`${isFavorited ? 'fas' : 'far'} fa-heart`}></i>
+                        </button>
                     </div>
                 </div>
             </div>

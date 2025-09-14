@@ -32,6 +32,49 @@
     --glow-pink: 0 0 30px rgba(244, 114, 182, 0.3);
     --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.3);
     --shadow-hover: 0 20px 60px rgba(0, 212, 255, 0.15);
+/* Animated gradient background */
+.animated-gradient-bg {
+    background: var(--gradient-animated);
+    background-size: 400% 400%;
+    animation: gradientMove 12s ease-in-out infinite;
+}
+
+@keyframes gradientMove {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Shimmer effect for cards/buttons */
+.shimmer {
+    position: relative;
+    overflow: hidden;
+}
+.shimmer::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -75%;
+    width: 50%; height: 100%;
+    background: linear-gradient(120deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.18) 50%, rgba(255,255,255,0) 100%);
+    animation: shimmerMove 2.5s infinite;
+}
+@keyframes shimmerMove {
+    0% { left: -75%; }
+    100% { left: 125%; }
+}
+
+/* Glass card with subtle color glow */
+.glass-card {
+    background: var(--glass-bg);
+    border: 1.5px solid var(--glass-border);
+    box-shadow: var(--shadow-glass), var(--glow-blue);
+    border-radius: 1.2rem;
+    backdrop-filter: blur(12px);
+    transition: box-shadow 0.3s;
+}
+.glass-card:hover {
+    box-shadow: var(--shadow-hover), var(--glow-cyan);
+}
     
     /* Animation Timings */
     --transition-fast: 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
@@ -282,37 +325,39 @@ body::before {
 }
 
 .recipe-filter-section .form-select, .search-section .form-select {
-    color: #ffffff !important;
-    background: var(--dark-surface);
-    border: 1.5px solid var(--primary-cyan);
+    color: var(--text-primary) !important;
+    background: #fff;
+    border: 1.5px solid var(--accent-blue);
     border-radius: 0.7rem;
-    box-shadow: var(--glow-cyan);
+    box-shadow: var(--shadow-glass);
     transition: border-color var(--transition-smooth), box-shadow var(--transition-smooth);
 }
 
 .recipe-filter-section .form-select:focus, .search-section .form-select:focus {
-    border-color: var(--accent-pink);
-    box-shadow: var(--glow-pink);
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 2px rgba(37,99,235,0.08);
     outline: none;
 }
 
 .recipe-filter-section .form-select option, .search-section .form-select option {
-    color: #000000;
-    background: #ffffff;
+    color: var(--text-primary);
+    background: #fff;
+    font-weight: 500;
+    border-radius: 0.5rem;
 }
 
 .recipe-filter-section .form-control, .search-section .form-control {
-    color: #ffffff !important;
-    background: var(--dark-surface);
-    border: 1.5px solid var(--primary-cyan);
+    color: var(--text-primary) !important;
+    background: #fff;
+    border: 1.5px solid var(--accent-blue);
     border-radius: 0.7rem;
-    box-shadow: var(--glow-cyan);
+    box-shadow: var(--shadow-glass);
     transition: border-color var(--transition-smooth), box-shadow var(--transition-smooth);
 }
 
 .recipe-filter-section .form-control:focus, .search-section .form-control:focus {
-    border-color: var(--accent-pink);
-    box-shadow: var(--glow-pink);
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 2px rgba(37,99,235,0.08);
     outline: none;
 }
 
@@ -322,24 +367,24 @@ body::before {
     border: none;
     border-radius: 0.7rem;
     font-weight: 600;
-    box-shadow: var(--glow-cyan);
+    box-shadow: var(--shadow-hover);
     transition: background var(--transition-smooth), box-shadow var(--transition-smooth);
 }
 
 .recipe-filter-section .btn:hover, .search-section .btn:hover {
     background: var(--gradient-secondary);
-    box-shadow: var(--glow-pink);
+    box-shadow: var(--shadow-hover);
 }
 
 .recipe-filter-section .btn-outline-secondary, .search-section .btn-outline-secondary {
-    border: 1.5px solid var(--accent-pink);
-    color: var(--accent-pink);
+    border: 1.5px solid var(--accent-blue);
+    color: var(--accent-blue);
     background: transparent;
     transition: background var(--transition-smooth), color var(--transition-smooth);
 }
 
 .recipe-filter-section .btn-outline-secondary:hover, .search-section .btn-outline-secondary:hover {
-    background: var(--accent-pink);
+    background: var(--accent-blue);
     color: #fff;
 }
 
