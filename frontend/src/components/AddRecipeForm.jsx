@@ -2,9 +2,9 @@
 import React, { useState, useEffect } from 'react';
 
 
-import { createRecipe } from '../services/api';
+import { createRecipe, updateRecipe } from '../services/api';
 
-const AddRecipeForm = ({ onRecipeAdded }) => {
+const AddRecipeForm = ({ onRecipeAdded, recipe, onRecipeUpdated, onClose }) => {
     // Utility to ensure value is always an array of numbers
     function toNumberArray(val) {
         if (Array.isArray(val)) return val.map(Number).filter(v => !isNaN(v));
@@ -47,27 +47,31 @@ const AddRecipeForm = ({ onRecipeAdded }) => {
         setInstructions(instructions.filter((_, i) => i !== idx).map((ins, i) => ({ ...ins, step_number: i + 1 })));
     };
     const [formData, setFormData] = useState({
-        title: '',
-        description: '',
-        category: '', // category ID
-        cuisine: '', // cuisine ID
-        diets: [], // array of diet IDs
-        prep_time: '',
-        cook_time: '',
-        servings: '',
-        difficulty: 'medium',
-        calories_per_serving: '',
-        protein: '',
-        carbs: '',
-        fat: '',
+        title: recipe?.title || '',
+        description: recipe?.description || '',
+        category: recipe?.category || '',
+        cuisine: recipe?.cuisine || '',
+        diets: recipe?.diets || [],
+        prep_time: recipe?.prep_time || '',
+        cook_time: recipe?.cook_time || '',
+        servings: recipe?.servings || '',
+        difficulty: recipe?.difficulty || 'medium',
+        calories_per_serving: recipe?.calories_per_serving || '',
+        protein: recipe?.protein || '',
+        carbs: recipe?.carbs || '',
+        fat: recipe?.fat || '',
         image: null,
     });
-    const [ingredients, setIngredients] = useState([
-        { name: '', quantity: '', unit: '' }
-    ]);
-    const [instructions, setInstructions] = useState([
-        { step_number: 1, text: '' }
-    ]);
+    const [ingredients, setIngredients] = useState(
+        recipe?.ingredients?.length > 0
+            ? recipe.ingredients.map(i => ({ ...i }))
+            : [{ name: '', quantity: '', unit: '' }]
+    );
+    const [instructions, setInstructions] = useState(
+        recipe?.instructions?.length > 0
+            ? recipe.instructions.map((ins, idx) => ({ ...ins, step_number: idx + 1 }))
+            : [{ step_number: 1, text: '' }]
+    );
     const [categories, setCategories] = useState([]);
     const [cuisines, setCuisines] = useState([]);
     const [diets, setDiets] = useState([]);
@@ -207,18 +211,27 @@ const AddRecipeForm = ({ onRecipeAdded }) => {
             const user = localStorage.getItem('foodmood_user');
             const token = user ? JSON.parse(user).token : null;
             if (token) headers.Authorization = `Token ${token}`;
-            const response = await fetch('http://localhost:8000/api/recipes/', {
-                method: 'POST',
-                headers,
-                body,
-            });
-            if (!response.ok) {
-                const errData = await response.json();
-                throw new Error(JSON.stringify(errData));
+            let response;
+            if (recipe && recipe.id) {
+                // Edit mode
+                response = await updateRecipe(recipe.id, body, headers);
+                if (onRecipeUpdated) onRecipeUpdated(response);
+            } else {
+                // Add mode
+                response = await fetch('http://localhost:8000/api/recipes/', {
+                    method: 'POST',
+                    headers,
+                    body,
+                });
+                if (!response.ok) {
+                    const errData = await response.json();
+                    throw new Error(JSON.stringify(errData));
+                }
+                const newRecipeObj = await response.json();
+                setAddedRecipes(prev => [newRecipeObj, ...prev]);
+                onRecipeAdded && onRecipeAdded(newRecipeObj);
             }
-            const newRecipeObj = await response.json();
-            setAddedRecipes(prev => [newRecipeObj, ...prev]);
-            onRecipeAdded && onRecipeAdded(newRecipeObj);
+            if (onClose) onClose();
         } catch (err) {
             let backendError = err;
             if (err.response && err.response.data) {

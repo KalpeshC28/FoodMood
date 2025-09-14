@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useContext } from "react";
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "./AuthContext";
@@ -10,6 +11,7 @@ import UserHistory from "./components/UserHistory";
 import * as apiService from "./services/api";
 import * as helpers from "./utils/helpers";
 import AddRecipePage from "./AddRecipePage";
+import AddRecipeForm from "./components/AddRecipeForm";
 import './App.css';
 
 // Particle Effect Component
@@ -56,6 +58,40 @@ function App() {
         diet: '',
         max_results: 12
     });
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [editRecipe, setEditRecipe] = useState(null);
+
+
+
+    // Handler for deleting a recipe
+    const handleRecipeDelete = async (deletedId) => {
+        setRecipes(prev => prev.filter(r => (r.id || r.spoonacular_id) !== deletedId));
+        setFavorites(prev => prev.filter(r => (r.id || r.spoonacular_id) !== deletedId));
+        setShowRecipeDetail(false);
+        setShowEditModal(false);
+        setEditRecipe(null);
+        helpers.showToast('Recipe deleted!', 'success');
+        setTimeout(() => {
+            window.location.reload();
+        }, 350);
+    };
+
+    // Handler for editing a recipe (show edit modal or page)
+    const handleRecipeEdit = (recipe) => {
+        setEditRecipe(recipe);
+        setShowEditModal(true);
+    };
+
+    const handleRecipeUpdated = (updatedRecipe) => {
+        setRecipes(prev => prev.map(r => ((r.id || r.spoonacular_id) === (updatedRecipe.id || updatedRecipe.spoonacular_id) ? updatedRecipe : r)));
+        setFavorites(prev => prev.map(r => ((r.id || r.spoonacular_id) === (updatedRecipe.id || updatedRecipe.spoonacular_id) ? updatedRecipe : r)));
+        setShowEditModal(false);
+        setEditRecipe(null);
+        setShowRecipeDetail(false);
+        performSearch(); // Refresh recipes from backend
+        loadFavorites(); // Refresh favorites from backend
+        helpers.showToast('Recipe updated!', 'success');
+    };
 
     // Initialize app
     useEffect(() => {
@@ -97,6 +133,16 @@ function App() {
             const response = await apiService.login(credentials);
             if (response.token) {
                 login(response.token);
+                // Immediately fetch and set user profile after login
+                try {
+                    const userResp = await apiService.getCurrentUser(response.token);
+                    if (userResp.user) {
+                        setCurrentUser(userResp.user);
+                        loadFavorites(response.token);
+                    }
+                } catch (e) {
+                    setCurrentUser(null);
+                }
                 setShowAuthModal(false);
                 helpers.showToast('Welcome back! 🎉', 'success');
             }
@@ -377,7 +423,28 @@ function App() {
                     isOpen={showRecipeDetail}
                     onClose={() => setShowRecipeDetail(false)}
                     currentUser={currentUser}
+                    onEdit={handleRecipeEdit}
+                    onDelete={handleRecipeDelete}
                 />
+                {showEditModal && (
+                    <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                        <div className="modal-dialog modal-lg">
+                            <div className="modal-content">
+                                <div className="modal-header">
+                                    <h4 className="modal-title">Edit Recipe</h4>
+                                    <button type="button" className="btn-close" onClick={() => { setShowEditModal(false); setEditRecipe(null); }}></button>
+                                </div>
+                                <div className="modal-body">
+                                    <AddRecipeForm
+                                        recipe={editRecipe}
+                                        onRecipeUpdated={handleRecipeUpdated}
+                                        onClose={() => { setShowEditModal(false); setEditRecipe(null); }}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
                 <UserHistory
                     isOpen={showHistory}
                     onClose={() => setShowHistory(false)}

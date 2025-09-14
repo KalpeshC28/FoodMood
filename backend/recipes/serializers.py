@@ -118,28 +118,31 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(errors)
         return data
     def to_internal_value(self, data):
-        # If multipart, parse ingredients/instructions from JSON string
+        # Only use custom parsing for multipart/form-data (QueryDict), not for JSON
+        from rest_framework.request import Request
         import json
-        # Convert QueryDict to dict, flattening single-value fields
-        data_dict = {}
-        for k, v in data.items():
-            # diet_ids can be multi-value, keep as list
-            if k == 'diet_ids':
-                data_dict[k] = data.getlist(k)
-            else:
-                data_dict[k] = v[0] if isinstance(v, list) else v
-        print('DEBUG: incoming data to serializer (flattened):', data_dict)
-        def extract_json_field(field):
-            val = data_dict.get(field)
-            if isinstance(val, str):
-                try:
-                    return json.loads(val)
-                except Exception as e:
-                    print(f'DEBUG: error parsing {field}:', e)
-            return val
-        data_dict['ingredients'] = extract_json_field('ingredients')
-        data_dict['instructions'] = extract_json_field('instructions')
-        return super().to_internal_value(data_dict)
+        if hasattr(data, 'getlist'):
+            # This is likely a QueryDict (multipart/form-data)
+            data_dict = {}
+            for k, v in data.items():
+                if k == 'diet_ids':
+                    data_dict[k] = data.getlist(k)
+                else:
+                    data_dict[k] = v[0] if isinstance(v, list) else v
+            print('DEBUG: incoming data to serializer (flattened):', data_dict)
+            def extract_json_field(field):
+                val = data_dict.get(field)
+                if isinstance(val, str):
+                    try:
+                        return json.loads(val)
+                    except Exception as e:
+                        print(f'DEBUG: error parsing {field}:', e)
+                return val
+            data_dict['ingredients'] = extract_json_field('ingredients')
+            data_dict['instructions'] = extract_json_field('instructions')
+            return super().to_internal_value(data_dict)
+        # For JSON, use default behavior
+        return super().to_internal_value(data)
     # No custom to_internal_value needed for JSON POST
     """Serializer for creating and updating recipes"""
     ingredients = IngredientSerializer(many=True)

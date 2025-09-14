@@ -1,8 +1,32 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import * as helpers from "../utils/helpers";
 import * as apiService from "../services/api";
 
-function RecipeDetail({ recipe, isOpen, onClose, currentUser }) {
+function RecipeDetail({ recipe, isOpen, onClose, currentUser, onEdit, onDelete }) {
+    const navigate = useNavigate();
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    // Handler for deleting a recipe (only for author)
+    const handleDelete = async () => {
+        if (!currentUser || !detailedRecipe || !detailedRecipe.author || currentUser.id !== detailedRecipe.author.id) {
+            helpers.showToast('You are not allowed to delete this recipe.', 'danger');
+            return;
+        }
+        setShowDeleteConfirm(true);
+    };
+
+    const confirmDelete = async () => {
+        try {
+            await apiService.deleteRecipe(detailedRecipe.id);
+            helpers.showToast('Recipe deleted successfully.', 'success');
+            if (onDelete) onDelete(detailedRecipe.id);
+            setShowDeleteConfirm(false);
+            window.location.href = "/";
+        } catch (error) {
+            helpers.showToast('Error deleting recipe: ' + error.message, 'danger');
+            setShowDeleteConfirm(false);
+        }
+    };
     const [detailedRecipe, setDetailedRecipe] = useState(null);
     const [servings, setServings] = useState(recipe?.servings || 1);
     const [isLoading, setIsLoading] = useState(false);
@@ -99,15 +123,46 @@ function RecipeDetail({ recipe, isOpen, onClose, currentUser }) {
 
     const currentRecipe = detailedRecipe || recipe;
 
-        return (
-        <div className="modal show d-block" style={{ backgroundColor: 'rgba(255, 255, 255, 0.5)' }}>
+    return (
+        <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
             <div className="modal-dialog modal-xl modal-dialog-scrollable">
                 <div className="modal-content">
                     <div className="modal-header">
                         <h4 className="modal-title">{currentRecipe.title}</h4>
                         <button type="button" className="btn-close" onClick={onClose}></button>
                     </div>
-                    
+                    {/* Edit/Delete buttons for author only */}
+                    {currentUser && detailedRecipe && detailedRecipe.author && currentUser.id === detailedRecipe.author.id && (
+                        <div className="d-flex justify-content-end gap-2 px-3 pt-2">
+                            <button className="btn btn-warning" onClick={() => onEdit && onEdit(detailedRecipe)}>
+                                <i className="fas fa-edit me-1"></i>Edit
+                            </button>
+                            <button className="btn btn-danger" onClick={handleDelete}>
+                                <i className="fas fa-trash me-1"></i>Delete
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Custom Delete Confirmation Modal */}
+                    {showDeleteConfirm && (
+                        <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                            <div className="modal-dialog modal-dialog-centered">
+                                <div className="modal-content">
+                                    <div className="modal-header">
+                                        <h5 className="modal-title">Confirm Delete</h5>
+                                        <button type="button" className="btn-close" onClick={() => setShowDeleteConfirm(false)}></button>
+                                    </div>
+                                    <div className="modal-body">
+                                        <p>Are you sure you want to delete this recipe? This action cannot be undone.</p>
+                                    </div>
+                                    <div className="modal-footer">
+                                        <button className="btn btn-secondary" onClick={() => setShowDeleteConfirm(false)}>Cancel</button>
+                                        <button className="btn btn-danger" onClick={confirmDelete}>Yes, Delete</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                     <div className="modal-body">
                         {isLoading && (
                             <div className="loading">
@@ -118,27 +173,15 @@ function RecipeDetail({ recipe, isOpen, onClose, currentUser }) {
 
                         {!isLoading && (
                             <>
-                                {/* Recipe Image and Title Side by Side */}
-
-                                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '2rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
-                                    {currentRecipe.image && (
-                                        <img 
-                                            src={currentRecipe.image} 
-                                            alt={currentRecipe.title}
-                                            className="recipe-detail-image mb-3 img-fluid rounded"
-                                            style={{ width: '320px', maxWidth: '100%', maxHeight: '260px', objectFit: 'cover', flex: '0 0 auto' }}
-                                        />
-                                    )}
-                                    <div style={{ flex: '1 1 0', minWidth: 0 }}>
-                                        {/* Recipe title removed as requested */}
-                                        {currentRecipe.description && (
-                                            <div className="mb-3" style={{ marginTop: '1rem' }}>
-                                                <h5 style={{ fontWeight: 600 }}>About This Recipe</h5>
-                                                <p style={{ marginBottom: 0 }}>{currentRecipe.description}</p>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
+                                {/* Recipe Image */}
+                                {currentRecipe.image && (
+                                    <img 
+                                        src={currentRecipe.image} 
+                                        alt={currentRecipe.title}
+                                        className="recipe-detail-image mb-3 img-fluid rounded"
+                                        style={{ width: '50%', maxHeight: '300px', objectFit: 'cover' }}
+                                    />
+                                )}
 
                                 {/* Recipe Meta */}
                                 <div className="row mb-4">
@@ -190,7 +233,13 @@ function RecipeDetail({ recipe, isOpen, onClose, currentUser }) {
                                     </div>
                                 </div>
 
-
+                                {/* Recipe Summary */}
+                                {currentRecipe.description && (
+                                    <div className="mb-4">
+                                        <h5>About This Recipe</h5>
+                                        <p>{currentRecipe.description}</p>
+                                    </div>
+                                )}
 
                                 {/* Navigation Tabs */}
                                 <ul className="nav nav-tabs mb-3">

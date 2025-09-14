@@ -34,8 +34,8 @@ class RecipeFilter(django_filters.FilterSet):
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
-    from rest_framework.parsers import MultiPartParser, FormParser
-    parser_classes = [MultiPartParser, FormParser]
+    from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if not serializer.is_valid():

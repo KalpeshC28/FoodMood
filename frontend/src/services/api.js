@@ -131,13 +131,20 @@ export const createRecipe = async (recipeData) => {
     }
 };
 
-export const updateRecipe = async (recipeId, recipeData) => {
+export const updateRecipe = async (recipeId, body, headers = {}) => {
     try {
-        const recipe = await apiRequest(`/recipes/${recipeId}/`, {
+        const token = getAuthToken();
+        if (token) headers.Authorization = `Token ${token}`;
+        const response = await fetch(`${API_BASE_URL}/recipes/${recipeId}/`, {
             method: 'PUT',
-            body: JSON.stringify(recipeData)
+            headers,
+            body
         });
-        return recipe;
+        if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(errData.detail || errData.error || `HTTP ${response.status}`);
+        }
+        return await response.json();
     } catch (error) {
         console.error('Update recipe error:', error);
         throw error;
