@@ -1,20 +1,52 @@
-import React, { useState } from "react";
-import * as helpers from "../utils/helpers";
+import React, { useState, useEffect } from "react";
 import { addSearchToHistory } from "../utils/helpers";
+import { getCuisines, getDiets, getMealTypes } from "../services/api";
+
 
 function RecipeFilter({ onFilterChange, onSearch, isLoading = false }) {
     const [filters, setFilters] = useState({
         query: '',
-        cuisine: '',
+        cuisine: '', // will store cuisine ID
         meal_type: '',
-        diet: '',
+        diet: '',    // will store diet ID
         max_results: 12
     });
+    const [cuisines, setCuisines] = useState([]);
+    const [diets, setDiets] = useState([]);
+    const [mealTypes, setMealTypes] = useState([]);
+
+    useEffect(() => {
+        async function fetchOptions() {
+            try {
+                const { cuisines } = await getCuisines();
+                setCuisines(cuisines);
+            } catch (e) { setCuisines([]); }
+            try {
+                const { diets } = await getDiets();
+                setDiets(diets);
+            } catch (e) { setDiets([]); }
+            try {
+                const { mealTypes } = await getMealTypes();
+                setMealTypes(mealTypes);
+            } catch (e) { setMealTypes([]); }
+        }
+        fetchOptions();
+    }, []);
 
     const handleInputChange = (field, value) => {
         const newFilters = { ...filters, [field]: value };
         setFilters(newFilters);
-        onFilterChange(newFilters);
+        // For cuisine and diet, ensure we send the ID (not name)
+        let filtersToSend = { ...newFilters };
+        if (field === 'cuisine' && value) {
+            const selected = cuisines.find(c => String(c.id) === String(value));
+            filtersToSend.cuisine = selected ? selected.id : '';
+        }
+        if (field === 'diet' && value) {
+            const selected = diets.find(d => String(d.id) === String(value));
+            filtersToSend.diet = selected ? selected.id : '';
+        }
+        onFilterChange(filtersToSend);
     };
 
     const handleSearch = (e) => {
@@ -81,10 +113,9 @@ function RecipeFilter({ onFilterChange, onSearch, isLoading = false }) {
                             onChange={(e) => handleInputChange('cuisine', e.target.value)}
                         >
                             <option value="">All Cuisines</option>
-                            <option value="italian">Italian</option>
-                            <option value="mexican">Mexican</option>
-                            <option value="asian">Asian</option>
-                            <option value="american">American</option>
+                            {cuisines.map((c) => (
+                                <option key={c.id} value={c.id}>{c.name}</option>
+                            ))}
                         </select>
                     </div>
 
@@ -96,10 +127,9 @@ function RecipeFilter({ onFilterChange, onSearch, isLoading = false }) {
                             onChange={(e) => handleInputChange('meal_type', e.target.value)}
                         >
                             <option value="">All Meal Types</option>
-                            <option value="breakfast">Breakfast</option>
-                            <option value="lunch">Lunch</option>
-                            <option value="dinner">Dinner</option>
-                            <option value="snack">Snack</option>
+                            {mealTypes.map((m) => (
+                                <option key={m} value={m}>{m.charAt(0).toUpperCase() + m.slice(1)}</option>
+                            ))}
                         </select>
                     </div>
 
@@ -111,10 +141,9 @@ function RecipeFilter({ onFilterChange, onSearch, isLoading = false }) {
                             onChange={(e) => handleInputChange('diet', e.target.value)}
                         >
                             <option value="">All Diets</option>
-                            <option value="vegetarian">Vegetarian</option>
-                            <option value="vegan">Vegan</option>
-                            <option value="gluten-free">Gluten Free</option>
-                            <option value="keto">Keto</option>
+                            {diets.map((d) => (
+                                <option key={d.id} value={d.id}>{d.name}</option>
+                            ))}
                         </select>
                     </div>
                 </div>

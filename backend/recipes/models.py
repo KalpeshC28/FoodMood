@@ -50,6 +50,7 @@ class Recipe(models.Model):
     difficulty = models.CharField(max_length=10, choices=DIFFICULTY_CHOICES, default='medium')
     
     image = models.ImageField(upload_to='recipe_images/', blank=True, null=True)
+    video_url = models.URLField(blank=True, null=True, help_text="YouTube video URL for this recipe")
     calories_per_serving = models.PositiveIntegerField(null=True, blank=True)
     protein = models.FloatField(null=True, blank=True, help_text="Protein per serving (g)")
     carbs = models.FloatField(null=True, blank=True, help_text="Carbohydrates per serving (g)")

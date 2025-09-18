@@ -83,8 +83,8 @@ WSGI_APPLICATION = 'foodwish.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'foodwishdb',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
         'USER': 'foodwishuser',
         'PASSWORD': 'kalpesh@2811',
         'HOST': 'localhost',

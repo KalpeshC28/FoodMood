@@ -325,11 +325,12 @@ body::before {
 }
 
 .recipe-filter-section .form-select, .search-section .form-select {
-    color: var(--text-primary) !important;
-    background: #fff;
-    border: 1.5px solid var(--accent-blue);
+    color: #00d4ff !important; /* Vibrant cyan for text */
+    background: #181830;
+    border: 2px solid #6366f1;
     border-radius: 0.7rem;
-    box-shadow: var(--shadow-glass);
+    box-shadow: 0 0 12px rgba(99,102,241,0.12);
+    font-weight: 600;
     transition: border-color var(--transition-smooth), box-shadow var(--transition-smooth);
 }
 
@@ -340,9 +341,9 @@ body::before {
 }
 
 .recipe-filter-section .form-select option, .search-section .form-select option {
-    color: var(--text-primary);
-    background: #fff;
-    font-weight: 500;
+    color: #6366f1;
+    background: #181830;
+    font-weight: 600;
     border-radius: 0.5rem;
 }
 

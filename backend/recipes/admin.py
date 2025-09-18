@@ -43,7 +43,7 @@ class RecipeAdmin(admin.ModelAdmin):
     
     fieldsets = (
         ('Basic Information', {
-            'fields': ('title', 'description', 'author', 'image')
+            'fields': ('title', 'description', 'author', 'image', 'video_url')
         }),
         ('Classification', {
             'fields': ('category', 'cuisine', 'diets')

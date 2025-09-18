@@ -28,20 +28,18 @@ function RecipeDetail({ recipe, isOpen, onClose, currentUser, onEdit, onDelete }
         }
     };
     const [detailedRecipe, setDetailedRecipe] = useState(null);
-    const [servings, setServings] = useState(recipe?.servings || 1);
+    // Removed servings state
     const [isLoading, setIsLoading] = useState(false);
-    const [userRating, setUserRating] = useState(0);
-    const [userReview, setUserReview] = useState('');
-    const [ratings, setRatings] = useState([]);
+    // Removed ratings and reviews state
     const [showIngredients, setShowIngredients] = useState(true);
     const [showInstructions, setShowInstructions] = useState(false);
     const [showNutrition, setShowNutrition] = useState(false);
+    const [showVideo, setShowVideo] = useState(false);
 
     useEffect(() => {
         if (isOpen && recipe) {
             loadRecipeDetails();
-            loadRatings();
-            setServings(recipe.servings || 1);
+            // Removed loadRatings
         }
     }, [isOpen, recipe]);
 
@@ -58,52 +56,11 @@ function RecipeDetail({ recipe, isOpen, onClose, currentUser, onEdit, onDelete }
         }
     };
 
-    const loadRatings = async () => {
-        try {
-            const response = await apiService.getRecipeRatings(recipe.id || recipe.spoonacular_id);
-            setRatings(response.ratings || []);
-        } catch (error) {
-            console.error('Error loading ratings:', error);
-        }
-    };
+    // Removed loadRatings
 
-    const handleServingsChange = async (newServings) => {
-        if (newServings < 1 || newServings > 12) return;
-        setServings(newServings);
-        setIsLoading(true);
-        try {
-            const response = await apiService.getRecipeDetail(recipe.spoonacular_id || recipe.id, newServings);
-            // Some APIs return {recipe: {...}}, some just {...}
-            setDetailedRecipe(response.recipe ? response.recipe : response);
-        } catch (error) {
-            console.error('Error adjusting servings:', error);
-            helpers.showToast('Error adjusting servings', 'danger');
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    // Removed handleServingsChange
 
-    const handleRatingSubmit = async () => {
-        if (!currentUser) {
-            helpers.showToast('Please login to rate recipes', 'warning');
-            return;
-        }
-
-        if (userRating === 0) {
-            helpers.showToast('Please select a rating', 'warning');
-            return;
-        }
-
-        try {
-            await apiService.rateRecipe(recipe.spoonacular_id || recipe.id, userRating, userReview);
-            helpers.showToast('Rating submitted successfully', 'success');
-            loadRatings();
-            setUserRating(0);
-            setUserReview('');
-        } catch (error) {
-            helpers.showToast('Error submitting rating: ' + error.message, 'danger');
-        }
-    };
+    // Removed handleRatingSubmit
 
     const createShoppingList = async () => {
         if (!currentUser) {
@@ -122,6 +79,13 @@ function RecipeDetail({ recipe, isOpen, onClose, currentUser, onEdit, onDelete }
     if (!isOpen || !recipe) return null;
 
     const currentRecipe = detailedRecipe || recipe;
+
+    // Helper to extract YouTube video ID and build embed URL
+    const getYouTubeEmbedUrl = (url) => {
+        if (!url) return null;
+        const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/\S+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([\w-]{11})/);
+        return match ? `https://www.youtube.com/embed/${match[1]}` : null;
+    };
 
     return (
         <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
@@ -173,15 +137,23 @@ function RecipeDetail({ recipe, isOpen, onClose, currentUser, onEdit, onDelete }
 
                         {!isLoading && (
                             <>
-                                {/* Recipe Image */}
-                                {currentRecipe.image && (
-                                    <img 
-                                        src={currentRecipe.image} 
-                                        alt={currentRecipe.title}
-                                        className="recipe-detail-image mb-3 img-fluid rounded"
-                                        style={{ width: '50%', maxHeight: '300px', objectFit: 'cover' }}
-                                    />
-                                )}
+                                {/* Image and About side-by-side */}
+                                <div className="d-flex flex-row align-items-start mb-4" style={{ gap: '2rem' }}>
+                                    {currentRecipe.image && (
+                                        <img 
+                                            src={currentRecipe.image} 
+                                            alt={currentRecipe.title}
+                                            className="recipe-detail-image mb-3 img-fluid rounded"
+                                            style={{ width: '340px', maxHeight: '300px', objectFit: 'cover' }}
+                                        />
+                                    )}
+                                    {currentRecipe.description && (
+                                        <div className="about-recipe-box p-3" style={{ minWidth: '260px', maxWidth: '400px' }}>
+                                            <h5>About This Recipe</h5>
+                                            <p>{currentRecipe.description}</p>
+                                        </div>
+                                    )}
+                                </div>
 
                                 {/* Recipe Meta */}
                                 <div className="row mb-4">
@@ -196,23 +168,7 @@ function RecipeDetail({ recipe, isOpen, onClose, currentUser, onEdit, onDelete }
                                         <div className="text-center">
                                             <i className="fas fa-users fa-2x text-success mb-2"></i>
                                             <p><strong>Servings</strong></p>
-                                            <div className="input-group">
-                                                <button 
-                                                    className="btn btn-outline-secondary"
-                                                    onClick={() => handleServingsChange(servings - 1)}
-                                                    disabled={servings <= 1}
-                                                >
-                                                    -
-                                                </button>
-                                                <span className="form-control text-center">{servings}</span>
-                                                <button 
-                                                    className="btn btn-outline-secondary"
-                                                    onClick={() => handleServingsChange(servings + 1)}
-                                                    disabled={servings >= 12}
-                                                >
-                                                    +
-                                                </button>
-                                            </div>
+                                            <span className="form-control text-center">{currentRecipe.servings}</span>
                                         </div>
                                     </div>
                                     <div className="col-md-3">
@@ -224,22 +180,8 @@ function RecipeDetail({ recipe, isOpen, onClose, currentUser, onEdit, onDelete }
                                             </span>
                                         </div>
                                     </div>
-                                    <div className="col-md-3">
-                                        <div className="text-center">
-                                            <i className="fas fa-star fa-2x text-warning mb-2"></i>
-                                            <p><strong>Rating</strong></p>
-                                            <p>{currentRecipe.average_rating ? currentRecipe.average_rating.toFixed(1) : 'No ratings'}</p>
-                                        </div>
-                                    </div>
+                                    {/* Removed rating meta */}
                                 </div>
-
-                                {/* Recipe Summary */}
-                                {currentRecipe.description && (
-                                    <div className="mb-4">
-                                        <h5>About This Recipe</h5>
-                                        <p>{currentRecipe.description}</p>
-                                    </div>
-                                )}
 
                                 {/* Navigation Tabs */}
                                 <ul className="nav nav-tabs mb-3">
@@ -250,6 +192,7 @@ function RecipeDetail({ recipe, isOpen, onClose, currentUser, onEdit, onDelete }
                                                 setShowIngredients(true);
                                                 setShowInstructions(false);
                                                 setShowNutrition(false);
+                                                setShowVideo(false);
                                             }}
                                         >
                                             <i className="fas fa-list me-2"></i>Ingredients
@@ -262,6 +205,7 @@ function RecipeDetail({ recipe, isOpen, onClose, currentUser, onEdit, onDelete }
                                                 setShowIngredients(false);
                                                 setShowInstructions(true);
                                                 setShowNutrition(false);
+                                                setShowVideo(false);
                                             }}
                                         >
                                             <i className="fas fa-utensils me-2"></i>Instructions
@@ -274,12 +218,43 @@ function RecipeDetail({ recipe, isOpen, onClose, currentUser, onEdit, onDelete }
                                                 setShowIngredients(false);
                                                 setShowInstructions(false);
                                                 setShowNutrition(true);
+                                                setShowVideo(false);
                                             }}
                                         >
                                             <i className="fas fa-heartbeat me-2"></i>Nutrition
                                         </button>
                                     </li>
+                                    {currentRecipe.video_url && getYouTubeEmbedUrl(currentRecipe.video_url) && (
+                                        <li className="nav-item">
+                                            <button 
+                                                className={`nav-link ${showVideo ? 'active' : ''}`}
+                                                onClick={() => {
+                                                    setShowIngredients(false);
+                                                    setShowInstructions(false);
+                                                    setShowNutrition(false);
+                                                    setShowVideo(true);
+                                                }}
+                                            >
+                                                <i className="fab fa-youtube me-2"></i>Video
+                                            </button>
+                                        </li>
+                                    )}
                                 </ul>
+                                {/* Video Tab */}
+                                {showVideo && currentRecipe.video_url && getYouTubeEmbedUrl(currentRecipe.video_url) && (
+                                    <div className="video-embed-box p-3 mb-4" style={{ maxWidth: '700px', margin: '0 auto' }}>
+                                        <h5>Recipe Video</h5>
+                                        <div className="ratio ratio-16x9">
+                                            <iframe
+                                                src={getYouTubeEmbedUrl(currentRecipe.video_url)}
+                                                title="Recipe Video"
+                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                allowFullScreen
+                                                style={{ border: 0, width: '100%', height: '340px', borderRadius: '8px' }}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
 
                                 {/* Ingredients Tab */}
                                 {showIngredients && (

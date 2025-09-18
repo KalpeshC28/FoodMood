@@ -92,9 +92,9 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
             'prep_time', 'cook_time', 'total_time', 'servings', 'difficulty',
             'image', 'calories_per_serving', 'protein', 'carbs', 'fat',
             'ingredients', 'instructions',
-            'ratings', 'average_rating', 'is_favorited', 'created_at', 'updated_at'
+            'ratings', 'average_rating', 'is_favorited', 'created_at', 'updated_at',
+            'video_url',
         ]
-    
     def get_is_favorited(self, obj):
         request = self.context.get('request')
         if request and request.user.is_authenticated:
@@ -160,7 +160,8 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
             'prep_time', 'cook_time', 'servings', 'difficulty',
             'image', 'calories_per_serving', 'protein', 'carbs', 'fat',
             'ingredients', 'instructions'
-        ]
+                'video_url',
+            ]
 
     def create(self, validated_data):
         ingredients_data = validated_data.pop('ingredients')
