@@ -156,8 +156,8 @@ REST_FRAMEWORK = {
 }
 
 # CORS settings for frontend access
-CORS_ALLOW_ALL_ORIGINS = True  # For development only
+CORS_ALLOW_ALL_ORIGINS = False  # For development only
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
-    "https://foodwishfront.onrender.com",
+    "https://foodmood-six.vercel.app",
 ]
