@@ -151,7 +151,7 @@ function RecipeDetail({ recipe, isOpen, onClose, currentUser, onEdit, onDelete }
                                     )}
                                     {currentRecipe.description && (
                                         <div className="about-recipe-box p-3" style={{ minWidth: '260px', maxWidth: '400px' }}>
-                                            <h5>About This Recipe</h5>
+                                            <h5>👨‍🍳 About This Recipe</h5>
                                             <p>{currentRecipe.description}</p>
                                         </div>
                                     )}
@@ -162,8 +162,15 @@ function RecipeDetail({ recipe, isOpen, onClose, currentUser, onEdit, onDelete }
                                     <div className="col-md-3">
                                         <div className="text-center">
                                             <i className="fas fa-clock fa-2x text-primary mb-2"></i>
-                                            <p><strong>Prep Time</strong></p>
+                                            <p><strong>Expected Preparation Time</strong></p>
                                             <p>{currentRecipe.prep_time} minutes</p>
+                                        </div>
+                                    </div>
+                                    <div className="col-md-3">
+                                        <div className="text-center">
+                                            <i className="fas fa-fire fa-2x text-danger mb-2"></i>
+                                            <p><strong>Cooking Time</strong></p>
+                                            <p>{currentRecipe.cook_time} minutes</p>
                                         </div>
                                     </div>
                                     <div className="col-md-3">
