@@ -85,11 +85,11 @@ WSGI_APPLICATION = 'foodwish.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-        'USER': 'foodwishuser',
-        'PASSWORD': 'kalpesh@2811',
-        'HOST': 'localhost',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'foodmood_ebsb',
+        'USER': 'kalpesh',
+        'PASSWORD': '6Jfunp4fP4si8CfPwbWK2hkkIbKtQTkM',
+        'HOST': 'dpg-d37gmg3e5dus739cdkng-a.oregon-postgres.render.com',
         'PORT': '5432',
     }
 }
