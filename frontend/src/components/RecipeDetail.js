@@ -1,9 +1,11 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import * as helpers from "../utils/helpers";
 import * as apiService from "../services/api";
 
 function RecipeDetail({ recipe, isOpen, onClose, currentUser, onEdit, onDelete }) {
+    const [videoLoading, setVideoLoading] = useState(true);
     const navigate = useNavigate();
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     // Handler for deleting a recipe (only for author)
@@ -240,17 +242,25 @@ function RecipeDetail({ recipe, isOpen, onClose, currentUser, onEdit, onDelete }
                                         </li>
                                     )}
                                 </ul>
-                                {/* Video Tab */}
+                                {/* Video Tab with loading spinner */}
                                 {showVideo && currentRecipe.video_url && getYouTubeEmbedUrl(currentRecipe.video_url) && (
                                     <div className="video-embed-box p-3 mb-4" style={{ maxWidth: '700px', margin: '0 auto' }}>
                                         <h5>Recipe Video</h5>
-                                        <div className="ratio ratio-16x9">
+                                        <div className="ratio ratio-16x9" style={{ position: 'relative' }}>
+                                            {videoLoading && (
+                                                <div className="d-flex justify-content-center align-items-center" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(255,255,255,0.7)', zIndex: 2 }}>
+                                                    <div className="spinner-border text-danger" role="status">
+                                                        <span className="visually-hidden">Loading...</span>
+                                                    </div>
+                                                </div>
+                                            )}
                                             <iframe
                                                 src={getYouTubeEmbedUrl(currentRecipe.video_url)}
                                                 title="Recipe Video"
                                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                                 allowFullScreen
-                                                style={{ border: 0, width: '100%', height: '340px', borderRadius: '8px' }}
+                                                style={{ border: 0, width: '100%', height: '340px', borderRadius: '8px', zIndex: 1 }}
+                                                onLoad={() => setVideoLoading(false)}
                                             />
                                         </div>
                                     </div>
