@@ -161,7 +161,7 @@ REST_FRAMEWORK = {
 }
 
 # CORS settings for frontend access
-CORS_ALLOW_ALL_ORIGINS = False  # For development only
+CORS_ALLOW_ALL_ORIGINS = False  # For production only
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
             "https://foodmood-six.vercel.app",
@@ -170,4 +170,7 @@ CORS_ALLOWED_ORIGINS = [
             "https://foodmood-qc0mwo0t7-kalpeshs-projects-fdc08a3b.vercel.app",
             "https://foodmood-kalpeshs-projects-fdc08a3b.vercel.app",
             "https://foodmood-69ic83xyz-kalpeshs-projects-fdc08a3b.vercel.app",
+            "https://foodwish-git-main-kalpeshs-projects-fdc08a3b.vercel.app",
+            "https://foodwish-pp2l4jdeq-kalpeshs-projects-fdc08a3b.vercel.app",
+            "https://foodwish-kalpeshs-projects-fdc08a3b.vercel.app",
 ]
