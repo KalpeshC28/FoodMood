@@ -77,13 +77,13 @@ const AddRecipeForm = ({ onRecipeAdded, recipe, onRecipeUpdated, onClose }) => {
     const [diets, setDiets] = useState([]);
     // Fetch categories on mount
     useEffect(() => {
-        fetch('http://localhost:8000/api/categories/')
+    fetch(`${process.env.REACT_APP_API_URL}/categories/`)
             .then(res => res.json())
             .then(data => setCategories(data));
-        fetch('http://localhost:8000/api/cuisines/')
+    fetch(`${process.env.REACT_APP_API_URL}/cuisines/`)
             .then(res => res.json())
             .then(data => setCuisines(data));
-        fetch('http://localhost:8000/api/diets/')
+    fetch(`${process.env.REACT_APP_API_URL}/diets/`)
             .then(res => res.json())
             .then(data => setDiets(data));
     }, []);
@@ -218,7 +218,7 @@ const AddRecipeForm = ({ onRecipeAdded, recipe, onRecipeUpdated, onClose }) => {
                 if (onRecipeUpdated) onRecipeUpdated(response);
             } else {
                 // Add mode
-                response = await fetch('http://localhost:8000/api/recipes/', {
+                response = await fetch(`${process.env.REACT_APP_API_URL}/recipes/`, {
                     method: 'POST',
                     headers,
                     body,
