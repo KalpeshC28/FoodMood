@@ -160,4 +160,5 @@ CORS_ALLOW_ALL_ORIGINS = False  # For development only
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
             "https://foodmood-six.vercel.app",
+            "https://foodmood-i46c7xwb0-kalpeshs-projects-fdc08a3b.vercel.app",
 ]
