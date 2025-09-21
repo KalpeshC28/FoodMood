@@ -1,2 +1,8 @@
  'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'foodwishdb',
+
+
+
+
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'foodmood_ebsb',

@@ -154,9 +154,8 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
             'title', 'description', 'category', 'cuisine', 'diet_ids',
             'prep_time', 'cook_time', 'servings', 'difficulty',
             'image', 'calories_per_serving', 'protein', 'carbs', 'fat',
-            'ingredients', 'instructions'
-                'video_url',
-            ]
+            'ingredients', 'instructions', 'video_url',
+        ]
 
     def create(self, validated_data):
         ingredients_data = validated_data.pop('ingredients')
