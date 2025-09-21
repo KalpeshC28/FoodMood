@@ -164,4 +164,5 @@ CORS_ALLOWED_ORIGINS = [
             "https://foodmood-git-main-kalpeshs-projects-fdc08a3b.vercel.app",
             "https://foodmood-qc0mwo0t7-kalpeshs-projects-fdc08a3b.vercel.app",
             "https://foodmood-kalpeshs-projects-fdc08a3b.vercel.app",
+            "https://foodmood-69ic83xyz-kalpeshs-projects-fdc08a3b.vercel.app",
 ]
