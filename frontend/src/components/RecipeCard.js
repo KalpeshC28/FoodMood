@@ -42,11 +42,16 @@ function RecipeCard({ recipe, onViewDetails, isFavorited, onToggleFavorite }) {
         }
     };
 
+    // S3 base URL for images
+    const S3_BASE_URL = "https://foodwish-media.s3.ap-south-1.amazonaws.com/recipe_images/";
+    // If recipe.image is a filename, construct full S3 URL
+    const imageUrl = recipe.image?.startsWith('http') ? recipe.image : `${S3_BASE_URL}${recipe.image}`;
+
     return (
         <div className="recipe-card h-100">
             <div className="card-image-container position-relative">
                 <img
-                    src={recipe.image}
+                    src={imageUrl}
                     alt={recipe.title}
                     className="recipe-card-img"
                     style={{
