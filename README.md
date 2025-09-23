@@ -1,6 +1,17 @@
-# FoodWish - Complete Recipe Management System 🍳
+# FoodMood - Complete Recipe Management System 🍳
 
-A full-stack recipe management application built with React and Django, featuring a beautiful UI with animations, comprehensive recipe database, user authentication, favorites, ratings, and shopping lists.
+![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
+![License](https://img.shields.io/badge/license-MIT-blue)
+![React](https://img.shields.io/badge/frontend-React-blue)
+![Django](https://img.shields.io/badge/backend-Django-green)
+![Python](https://img.shields.io/badge/language-Python-blue)
+![JavaScript](https://img.shields.io/badge/language-JavaScript-yellow)
+
+**Live App:**
+- Frontend: [https://foodmood-six.vercel.app/](https://foodmood-six.vercel.app/)
+
+
+A full-stack recipe management application built with React and Django, featuring a beautiful UI with animations, comprehensive recipe database, user authentication, favorites, ratings, and shopping lists. Recipe images are stored and served from AWS S3 for scalability and reliability.
 
 ## ✨ Features
 
@@ -156,6 +167,6 @@ Each recipe includes:
 
 ---
 
-**The FoodWish application is now fully functional with both backend and frontend running! 🚀**
+**The FoodMood application is now fully functional with both backend and frontend running! 🚀**
 
 Access the app at: **http://localhost:3000**
