@@ -8,7 +8,7 @@
 ![JavaScript](https://img.shields.io/badge/language-JavaScript-yellow)
 
 **Live App:**
-- Frontend: [https://foodmood-six.vercel.app/](https://foodmood-six.vercel.app/)
+[https://foodmood-six.vercel.app/](https://foodmood-six.vercel.app/)
 
 
 A full-stack recipe management application built with React and Django, featuring a beautiful UI with animations, comprehensive recipe database, user authentication, favorites, ratings, and shopping lists. Recipe images are stored and served from AWS S3 for scalability and reliability.
@@ -34,6 +34,7 @@ A full-stack recipe management application built with React and Django, featurin
 - **Shopping List API**: Add recipe ingredients to shopping lists
 - **User Management**: Registration, login, profile management
 - **Admin Interface**: Django admin for easy content management
+- **Spoonacular API Integration**: Search and fetch external recipes with nutrition info, fallback to local recipes if API fails
 
 ## 🛠️ Technology Stack
 
@@ -46,7 +47,9 @@ A full-stack recipe management application built with React and Django, featurin
 ### Backend  
 - **Django 4.2** - Python web framework
 - **Django REST Framework** - API development
-- **SQLite** - Database (can be easily switched to PostgreSQL)
+- **PostgreSQL** - Production database (Render)
+- **SQLite** - Local development database (default, can be switched to PostgreSQL)
+- **Spoonacular API** - External recipe and nutrition data source
 - **Django CORS Headers** - Cross-origin resource sharing
 - **Pillow** - Image processing
 - **Token Authentication** - Secure API access
@@ -59,6 +62,17 @@ A full-stack recipe management application built with React and Django, featurin
 - npm or yarn
 
 ### Backend Setup
+### Spoonacular API Setup
+
+1. **Get your Spoonacular API key:**
+   - Sign up at [spoonacular.com/food-api](https://spoonacular.com/food-api) and obtain your API key.
+
+2. **Add your API key to the backend `.env` file:**
+   ```env
+   SPOONACULAR_API_KEY=your_spoonacular_api_key_here
+   ```
+
+3. **The backend will automatically use this key to fetch recipes and nutrition info from Spoonacular. If the API fails, it will fallback to local recipes.**
 
 1. **Navigate to backend directory:**
    ```bash
@@ -69,7 +83,6 @@ A full-stack recipe management application built with React and Django, featurin
    ```bash
    # Windows
    .\..\backend_venv\Scripts\Activate.ps1
-   
    # Linux/Mac
    source ../backend_venv/bin/activate
    ```
@@ -79,17 +92,33 @@ A full-stack recipe management application built with React and Django, featurin
    pip install -r requirements.txt
    ```
 
-4. **Run migrations:**
+4. **Configure database:**
+   - By default, the app uses SQLite for local development.
+   - For production, update `DATABASES` in `backend/foodwish/settings.py` to use PostgreSQL and set credentials in your `.env` or Render dashboard:
+     ```python
+     DATABASES = {
+         'default': {
+             'ENGINE': 'db_engine',
+             'NAME': 'db_name',
+             'USER': 'username',
+             'PASSWORD': 'your_password',
+             'HOST': 'your_host',
+             'PORT': 'your_port',
+         }
+     }
+     ```
+
+5. **Run migrations:**
    ```bash
    python manage.py migrate
    ```
 
-5. **Create sample data:**
+6. **Create sample data:**
    ```bash
    python manage.py populate_data
    ```
 
-6. **Start Django server:**
+7. **Start Django server:**
    ```bash
    python manage.py runserver
    ```
