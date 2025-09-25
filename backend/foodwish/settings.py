@@ -12,6 +12,10 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
+from dotenv import load_dotenv
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(os.path.join(BASE_DIR, '.env'))
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -173,4 +177,5 @@ CORS_ALLOWED_ORIGINS = [
             "https://foodwish-git-main-kalpeshs-projects-fdc08a3b.vercel.app",
             "https://foodwish-pp2l4jdeq-kalpeshs-projects-fdc08a3b.vercel.app",
             "https://foodwish-kalpeshs-projects-fdc08a3b.vercel.app",
+            
 ]

@@ -72,7 +72,13 @@ export const searchRecipes = async (filters = {}) => {
 
 export const getRecipeDetail = async (recipeId) => {
     try {
-        const recipe = await apiRequest(`/recipes/${recipeId}/`);
+        let url;
+        if (String(recipeId).startsWith('spoonacular_')) {
+            url = `/recipes/spoonacular_${String(recipeId).replace('spoonacular_', '')}/`;
+        } else {
+            url = `/recipes/${recipeId}/`;
+        }
+        const recipe = await apiRequest(url);
         return recipe;
     } catch (error) {
         console.error('Recipe detail error:', error);

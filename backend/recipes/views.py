@@ -1,3 +1,108 @@
+
+import os
+import requests
+from django.conf import settings
+from django.shortcuts import get_object_or_404
+from django.db.models import Q, Avg
+from rest_framework import viewsets, status, filters
+from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly, AllowAny
+from django_filters.rest_framework import DjangoFilterBackend
+from django_filters import rest_framework as django_filters
+
+from .models import (
+    Recipe, Category, Cuisine, Diet, Rating, Favorite, ShoppingListItem
+)
+from .serializers import (
+    RecipeListSerializer, RecipeDetailSerializer, RecipeCreateUpdateSerializer,
+    CategorySerializer, CuisineSerializer, DietSerializer, RatingSerializer,
+    FavoriteSerializer, ShoppingListItemSerializer
+)
+
+SPOONACULAR_API_KEY = os.environ.get('SPOONACULAR_API_KEY')
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def spoonacular_recipe_detail(request, recipe_id):
+    # Extract numeric ID from spoonacular_xxx
+    if recipe_id.startswith('spoonacular_'):
+        sid = recipe_id.replace('spoonacular_', '')
+        try:
+            response = requests.get(
+                f'https://api.spoonacular.com/recipes/{sid}/information',
+                params={
+                    'apiKey': SPOONACULAR_API_KEY,
+                    'includeNutrition': False
+                }
+            )
+            print("Spoonacular detail status:", response.status_code)
+            print("Spoonacular detail response:", response.text)
+            if response.status_code == 200:
+                r = response.json()
+                nutrition = {}
+                if 'nutrition' in r and 'nutrients' in r['nutrition']:
+                    for n in r['nutrition']['nutrients']:
+                        # Common nutrients: Calories, Protein, Fat, Carbohydrates
+                        if n['name'] in ['Calories', 'Protein', 'Fat', 'Carbohydrates']:
+                            nutrition[n['name'].lower()] = {
+                                'amount': n['amount'],
+                                'unit': n['unit']
+                            }
+                data = {
+                    'id': f"spoonacular_{r.get('id')}",
+                    'title': r.get('title'),
+                    'image': r.get('image'),
+                    'ingredients': [i['original'] for i in r.get('extendedIngredients', [])] if r.get('extendedIngredients') else [],
+                    'instructions': r.get('instructions'),
+                    'source': 'spoonacular',
+                    'summary': r.get('summary'),
+                    'readyInMinutes': r.get('readyInMinutes'),
+                    'servings': r.get('servings'),
+                    'sourceUrl': r.get('sourceUrl'),
+                    'nutrition': nutrition,
+                }
+                return Response(data)
+            else:
+                return Response({'error': 'Recipe not found'}, status=response.status_code)
+        except Exception as e:
+            print("Spoonacular detail error:", e)
+            return Response({'error': str(e)}, status=500)
+    return Response({'error': 'Invalid Spoonacular ID'}, status=400)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def merged_recipes(request):
+    # Fetch recipes from Django DB
+    django_recipes = RecipeListSerializer(Recipe.objects.all(), many=True, context={'request': request}).data
+
+    # Try to fetch recipes from Spoonacular
+    spoonacular_recipes = []
+    try:
+        response = requests.get(
+            'https://api.spoonacular.com/recipes/random',
+            params={'number': 5, 'apiKey': SPOONACULAR_API_KEY}
+        )
+        print("Spoonacular status:", response.status_code)
+        print("Spoonacular response:", response.text)
+        if response.status_code == 200:
+            data = response.json()
+            for r in data.get('recipes', []):
+                spoonacular_recipes.append({
+                    'id': f"spoonacular_{r.get('id')}",
+                    'title': r.get('title'),
+                    'image': r.get('image'),
+                    'ingredients': [i['original'] for i in r.get('extendedIngredients', [])],
+                    'instructions': r.get('instructions'),
+                    'source': 'spoonacular',
+                    # Add more fields as needed to match your frontend
+                })
+    except Exception as e:
+        print("Spoonacular error:", e)
+
+    # Combine both sources
+    all_recipes = list(django_recipes) + spoonacular_recipes
+    return Response({'recipes': all_recipes})
 from django.shortcuts import get_object_or_404
 from django.db.models import Q, Avg
 from rest_framework import viewsets, status, filters
@@ -51,95 +156,62 @@ class RecipeViewSet(viewsets.ModelViewSet):
     search_fields = ['title', 'description', 'ingredients__name']
     ordering_fields = ['created_at', 'prep_time', 'cook_time', 'difficulty']
     ordering = ['-created_at']
-    
+
     def get_serializer_class(self):
         if self.action == 'list':
             return RecipeListSerializer
         elif self.action == 'retrieve':
             return RecipeDetailSerializer
         return RecipeCreateUpdateSerializer
-    
+
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
-    
-    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
-    def favorite(self, request, pk=None):
-        recipe = self.get_object()
-        favorite, created = Favorite.objects.get_or_create(
-            user=request.user, recipe=recipe
-        )
-        if created:
-            return Response({'message': 'Recipe added to favorites'})
-        else:
-            return Response({'message': 'Recipe already in favorites'}, 
-                          status=status.HTTP_400_BAD_REQUEST)
-    
-    @action(detail=True, methods=['delete'], permission_classes=[IsAuthenticated])
-    def unfavorite(self, request, pk=None):
-        recipe = self.get_object()
-        try:
-            favorite = Favorite.objects.get(user=request.user, recipe=recipe)
-            favorite.delete()
-            return Response({'message': 'Recipe removed from favorites'})
-        except Favorite.DoesNotExist:
-            return Response({'message': 'Recipe not in favorites'}, 
-                          status=status.HTTP_400_BAD_REQUEST)
-    
-    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
-    def rate(self, request, pk=None):
-        recipe = self.get_object()
-        score = request.data.get('score')
-        comment = request.data.get('comment', '')
-        
-        if not score or not (1 <= int(score) <= 5):
-            return Response({'error': 'Score must be between 1 and 5'}, 
-                          status=status.HTTP_400_BAD_REQUEST)
-        
-        rating, created = Rating.objects.update_or_create(
-            user=request.user, recipe=recipe,
-            defaults={'score': score, 'comment': comment}
-        )
-        
-        serializer = RatingSerializer(rating)
-        return Response(serializer.data)
-    
-    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
-    def add_to_shopping_list(self, request, pk=None):
-        recipe = self.get_object()
-        
-        # Add all ingredients from the recipe to the shopping list
-        for ingredient in recipe.ingredients.all():
-            ShoppingListItem.objects.get_or_create(
-                user=request.user,
-                recipe=recipe,
-                ingredient_name=ingredient.name,
-                defaults={
-                    'quantity': ingredient.quantity,
-                    'unit': ingredient.unit
-                }
-            )
-        
-        return Response({'message': 'Ingredients added to shopping list'})
-    
-    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
-    def my_recipes(self, request):
-        queryset = self.get_queryset().filter(author=request.user)
+
+    def list(self, request, *args, **kwargs):
+        # ...existing code...
+        queryset = self.filter_queryset(self.get_queryset())
+        search_query = request.query_params.get('search')
+        # Get Django recipes
         page = self.paginate_queryset(queryset)
+        django_recipes = RecipeListSerializer(page if page is not None else queryset, many=True, context={'request': request}).data
+
+        # If search query, also fetch from Spoonacular
+        spoonacular_recipes = []
+        if search_query:
+            try:
+                response = requests.get(
+                    'https://api.spoonacular.com/recipes/complexSearch',
+                    params={
+                        'query': search_query,
+                        'number': 5,
+                        'apiKey': SPOONACULAR_API_KEY,
+                        'addRecipeInformation': True
+                    }
+                )
+                print("Spoonacular search status:", response.status_code)
+                print("Spoonacular search response:", response.text)
+                if response.status_code == 200:
+                    data = response.json()
+                    for r in data.get('results', []):
+                        spoonacular_recipes.append({
+                            'id': f"spoonacular_{r.get('id')}",
+                            'title': r.get('title'),
+                            'image': r.get('image'),
+                            'ingredients': [i['original'] for i in r.get('extendedIngredients', [])] if r.get('extendedIngredients') else [],
+                            'instructions': r.get('instructions'),
+                            'source': 'spoonacular',
+                            # Add more fields as needed
+                        })
+            except Exception as e:
+                print("Spoonacular search error:", e)
+
+        # Merge results
+        all_recipes = list(django_recipes) + spoonacular_recipes
         if page is not None:
-            serializer = RecipeListSerializer(page, many=True, context={'request': request})
-            return self.get_paginated_response(serializer.data)
-        serializer = RecipeListSerializer(queryset, many=True, context={'request': request})
-        return Response(serializer.data)
-    
-    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
-    def favorites(self, request):
-        favorites = Favorite.objects.filter(user=request.user)
-        page = self.paginate_queryset(favorites)
-        if page is not None:
-            serializer = FavoriteSerializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-        serializer = FavoriteSerializer(favorites, many=True)
-        return Response(serializer.data)
+            return self.get_paginated_response(all_recipes)
+        return Response(all_recipes)
+
+    # ...existing code...
 
 
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):

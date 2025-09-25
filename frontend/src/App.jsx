@@ -247,7 +247,17 @@ function App() {
     };
 
     const handleRecipeSelect = (recipe) => {
-        setSelectedRecipe(recipe);
+        let selected = recipe;
+        // If it's a Spoonacular recipe, ensure id is prefixed and source is set
+        if (recipe.spoonacular_id || recipe.source === 'spoonacular') {
+            const spoonId = recipe.spoonacular_id || recipe.id;
+            selected = {
+                ...recipe,
+                id: `spoonacular_${spoonId}`,
+                source: 'spoonacular',
+            };
+        }
+        setSelectedRecipe(selected);
         setShowRecipeDetail(true);
     };
 

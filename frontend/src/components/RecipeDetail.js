@@ -48,7 +48,14 @@ function RecipeDetail({ recipe, isOpen, onClose, currentUser, onEdit, onDelete }
     const loadRecipeDetails = async () => {
         setIsLoading(true);
         try {
-            const response = await apiService.getRecipeDetail(recipe.id || recipe.spoonacular_id);
+            let detailId;
+            if (recipe.source === 'spoonacular' || (recipe.id && String(recipe.id).startsWith('spoonacular_'))) {
+                // If id is already prefixed, use as is; else prefix
+                detailId = String(recipe.id).startsWith('spoonacular_') ? recipe.id : `spoonacular_${recipe.id || recipe.spoonacular_id}`;
+            } else {
+                detailId = recipe.id;
+            }
+            const response = await apiService.getRecipeDetail(detailId);
             setDetailedRecipe(response);
         } catch (error) {
             console.error('Error loading recipe details:', error);
@@ -81,6 +88,8 @@ function RecipeDetail({ recipe, isOpen, onClose, currentUser, onEdit, onDelete }
     if (!isOpen || !recipe) return null;
 
     const currentRecipe = detailedRecipe || recipe;
+    // Use spoonacular_ prefix or source field to detect Spoonacular
+    const isSpoonacular = currentRecipe.id && String(currentRecipe.id).startsWith('spoonacular_') || currentRecipe.source === 'spoonacular';
 
     // Helper to extract YouTube video ID and build embed URL
     const getYouTubeEmbedUrl = (url) => {
@@ -149,11 +158,21 @@ function RecipeDetail({ recipe, isOpen, onClose, currentUser, onEdit, onDelete }
                                             style={{ width: '340px', maxHeight: '300px', objectFit: 'cover' }}
                                         />
                                     )}
-                                    {currentRecipe.description && (
-                                        <div className="about-recipe-box p-3" style={{ minWidth: '260px', maxWidth: '400px' }}>
-                                            <h5>👨‍🍳 About This Recipe</h5>
-                                            <p>{currentRecipe.description}</p>
-                                        </div>
+                                    {/* Show description for Django, summary for Spoonacular */}
+                                    {isSpoonacular ? (
+                                        currentRecipe.summary && (
+                                            <div className="about-recipe-box p-3" style={{ minWidth: '260px', maxWidth: '400px' }}>
+                                                <h5>👨‍🍳 About This Recipe</h5>
+                                                <div dangerouslySetInnerHTML={{ __html: currentRecipe.summary }}></div>
+                                            </div>
+                                        )
+                                    ) : (
+                                        currentRecipe.description && (
+                                            <div className="about-recipe-box p-3" style={{ minWidth: '260px', maxWidth: '400px' }}>
+                                                <h5>👨‍🍳 About This Recipe</h5>
+                                                <p>{currentRecipe.description}</p>
+                                            </div>
+                                        )
                                     )}
                                 </div>
 
@@ -279,24 +298,52 @@ function RecipeDetail({ recipe, isOpen, onClose, currentUser, onEdit, onDelete }
                                         <div className="mb-3">
                                             <h5>Ingredients</h5>
                                         </div>
-                                        {currentRecipe.ingredients && currentRecipe.ingredients.length > 0 ? (
-                                            <div className="row">
-                                                {currentRecipe.ingredients.map((ingredient, index) => (
-                                                    <div key={ingredient.id || index} className="col-md-6 mb-2">
-                                                        <div className="ingredient-item p-2 border rounded">
-                                                            <span className="ingredient-amount fw-bold">
-                                                                {ingredient.quantity} {ingredient.unit}
-                                                            </span>
-                                                            <span className="ms-2">{ingredient.name}</span>
+                                        {isSpoonacular ? (
+                                            currentRecipe.ingredients && currentRecipe.ingredients.length > 0 ? (
+                                                <ul className="list-group mb-3">
+                                                    {currentRecipe.ingredients.map((ingredient, idx) => (
+                                                        <li key={idx} className="list-group-item">{ingredient}</li>
+                                                    ))}
+                                                </ul>
+                                            ) : (
+                                                <div className="text-center py-4">
+                                                    <i className="fas fa-list fa-3x text-muted mb-3"></i>
+                                                    <p className="text-muted">No ingredient information available.</p>
+                                                    {currentRecipe.summary && (
+                                                        <div className="mt-3">
+                                                            <h6>About This Recipe</h6>
+                                                            <div dangerouslySetInnerHTML={{ __html: currentRecipe.summary }}></div>
                                                         </div>
-                                                    </div>
-                                                ))}
-                                            </div>
+                                                    )}
+                                                    {currentRecipe.sourceUrl && (
+                                                        <div className="mt-2">
+                                                            <a href={currentRecipe.sourceUrl} target="_blank" rel="noopener noreferrer" className="btn btn-outline-primary">
+                                                                View Full Recipe on Source
+                                                            </a>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )
                                         ) : (
-                                            <div className="text-center py-4">
-                                                <i className="fas fa-list fa-3x text-muted mb-3"></i>
-                                                <p className="text-muted">No ingredient information available.</p>
-                                            </div>
+                                            currentRecipe.ingredients && currentRecipe.ingredients.length > 0 ? (
+                                                <div className="row">
+                                                    {currentRecipe.ingredients.map((ingredient, index) => (
+                                                        <div key={ingredient.id || index} className="col-md-6 mb-2">
+                                                            <div className="ingredient-item p-2 border rounded">
+                                                                <span className="ingredient-amount fw-bold">
+                                                                    {ingredient.quantity} {ingredient.unit}
+                                                                </span>
+                                                                <span className="ms-2">{ingredient.name}</span>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <div className="text-center py-4">
+                                                    <i className="fas fa-list fa-3x text-muted mb-3"></i>
+                                                    <p className="text-muted">No ingredient information available.</p>
+                                                </div>
+                                            )
                                         )}
                                     </div>
                                 )}
@@ -305,23 +352,54 @@ function RecipeDetail({ recipe, isOpen, onClose, currentUser, onEdit, onDelete }
                                 {showInstructions && (
                                     <div>
                                         <h5>Instructions</h5>
-                                        {currentRecipe.instructions && currentRecipe.instructions.length > 0 ? (
-                                            <div className="instructions-list">
-                                                {currentRecipe.instructions.map((instruction, index) => (
-                                                    <div key={instruction.id || index} className="instruction-step mb-3 p-3 border rounded">
+                                        {isSpoonacular ? (
+                                            currentRecipe.instructions ? (
+                                                <div className="instructions-list">
+                                                    <div className="instruction-step mb-3 p-3 border rounded">
                                                         <div className="d-flex align-items-start">
-                                                            <span className="badge bg-primary me-3">{instruction.step_number || index + 1}</span>
-                                                            <p className="mb-0">{instruction.text}</p>
+                                                            <span className="badge bg-primary me-3">1</span>
+                                                            <div className="mb-0" dangerouslySetInnerHTML={{ __html: currentRecipe.instructions }}></div>
                                                         </div>
                                                     </div>
-                                                ))}
-                                            </div>
+                                                </div>
+                                            ) : (
+                                                <div className="text-center py-4">
+                                                    <i className="fas fa-utensils fa-3x text-muted mb-3"></i>
+                                                    <p className="text-muted">No cooking instructions available for this recipe.</p>
+                                                    {currentRecipe.summary && (
+                                                        <div className="mt-3">
+                                                            <h6>About This Recipe</h6>
+                                                            <div dangerouslySetInnerHTML={{ __html: currentRecipe.summary }}></div>
+                                                        </div>
+                                                    )}
+                                                    {currentRecipe.sourceUrl && (
+                                                        <div className="mt-2">
+                                                            <a href={currentRecipe.sourceUrl} target="_blank" rel="noopener noreferrer" className="btn btn-outline-primary">
+                                                                View Full Recipe on Source
+                                                            </a>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )
                                         ) : (
-                                            <div className="text-center py-4">
-                                                <i className="fas fa-utensils fa-3x text-muted mb-3"></i>
-                                                <p className="text-muted">No cooking instructions available for this recipe.</p>
-                                                <p className="text-muted small">This might be a recipe imported from an external source.</p>
-                                            </div>
+                                            currentRecipe.instructions && currentRecipe.instructions.length > 0 ? (
+                                                <div className="instructions-list">
+                                                    {currentRecipe.instructions.map((instruction, index) => (
+                                                        <div key={instruction.id || index} className="instruction-step mb-3 p-3 border rounded">
+                                                            <div className="d-flex align-items-start">
+                                                                <span className="badge bg-primary me-3">{instruction.step_number || index + 1}</span>
+                                                                <p className="mb-0">{instruction.text}</p>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <div className="text-center py-4">
+                                                    <i className="fas fa-utensils fa-3x text-muted mb-3"></i>
+                                                    <p className="text-muted">No cooking instructions available for this recipe.</p>
+                                                    <p className="text-muted small">This might be a recipe imported from an external source.</p>
+                                                </div>
+                                            )
                                         )}
                                     </div>
                                 )}
@@ -330,38 +408,74 @@ function RecipeDetail({ recipe, isOpen, onClose, currentUser, onEdit, onDelete }
                                 {showNutrition && (
                                     <div>
                                         <h5>Nutrition Information</h5>
-                                        {currentRecipe.calories_per_serving ? (
-                                            <div className="row">
-                                                <div className="col-md-3">
-                                                    <div className="nutrition-item text-center p-3 border rounded">
-                                                        <div className="nutrition-value h4 text-primary">{currentRecipe.calories_per_serving}</div>
-                                                        <div className="nutrition-label">Calories</div>
+                                        {isSpoonacular ? (
+                                            currentRecipe.nutrition && Object.keys(currentRecipe.nutrition).length > 0 ? (
+                                                <div className="row">
+                                                    <div className="col-md-3">
+                                                        <div className="nutrition-item text-center p-3 border rounded">
+                                                            <div className="nutrition-value h4 text-primary">{currentRecipe.nutrition.calories ? currentRecipe.nutrition.calories.amount : '-'} {currentRecipe.nutrition.calories ? currentRecipe.nutrition.calories.unit : ''}</div>
+                                                            <div className="nutrition-label">Calories</div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="col-md-3">
+                                                        <div className="nutrition-item text-center p-3 border rounded">
+                                                            <div className="nutrition-value h4 text-success">{currentRecipe.nutrition.protein ? currentRecipe.nutrition.protein.amount : '-'} {currentRecipe.nutrition.protein ? currentRecipe.nutrition.protein.unit : ''}</div>
+                                                            <div className="nutrition-label">Protein</div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="col-md-3">
+                                                        <div className="nutrition-item text-center p-3 border rounded">
+                                                            <div className="nutrition-value h4 text-warning">{currentRecipe.nutrition.carbohydrates ? currentRecipe.nutrition.carbohydrates.amount : '-'} {currentRecipe.nutrition.carbohydrates ? currentRecipe.nutrition.carbohydrates.unit : ''}</div>
+                                                            <div className="nutrition-label">Carbs</div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="col-md-3">
+                                                        <div className="nutrition-item text-center p-3 border rounded">
+                                                            <div className="nutrition-value h4 text-info">{currentRecipe.nutrition.fat ? currentRecipe.nutrition.fat.amount : '-'} {currentRecipe.nutrition.fat ? currentRecipe.nutrition.fat.unit : ''}</div>
+                                                            <div className="nutrition-label">Fat</div>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                                <div className="col-md-3">
-                                                    <div className="nutrition-item text-center p-3 border rounded">
-                                                        <div className="nutrition-value h4 text-success">{currentRecipe.protein !== undefined && currentRecipe.protein !== null ? currentRecipe.protein + 'g' : '-'}</div>
-                                                        <div className="nutrition-label">Protein</div>
-                                                    </div>
+                                            ) : (
+                                                <div className="text-center py-4">
+                                                    <i className="fas fa-heartbeat fa-3x text-muted mb-3"></i>
+                                                    <p className="text-muted">No nutrition information available.</p>
                                                 </div>
-                                                <div className="col-md-3">
-                                                    <div className="nutrition-item text-center p-3 border rounded">
-                                                        <div className="nutrition-value h4 text-warning">{currentRecipe.carbs !== undefined && currentRecipe.carbs !== null ? currentRecipe.carbs + 'g' : '-'}</div>
-                                                        <div className="nutrition-label">Carbs</div>
-                                                    </div>
-                                                </div>
-                                                <div className="col-md-3">
-                                                    <div className="nutrition-item text-center p-3 border rounded">
-                                                        <div className="nutrition-value h4 text-info">{currentRecipe.fat !== undefined && currentRecipe.fat !== null ? currentRecipe.fat + 'g' : '-'}</div>
-                                                        <div className="nutrition-label">Fat</div>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            )
                                         ) : (
-                                            <div className="text-center py-4">
-                                                <i className="fas fa-heartbeat fa-3x text-muted mb-3"></i>
-                                                <p className="text-muted">No nutrition information available.</p>
-                                            </div>
+                                            currentRecipe.calories_per_serving ? (
+                                                <div className="row">
+                                                    <div className="col-md-3">
+                                                        <div className="nutrition-item text-center p-3 border rounded">
+                                                            <div className="nutrition-value h4 text-primary">{currentRecipe.calories_per_serving}</div>
+                                                            <div className="nutrition-label">Calories</div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="col-md-3">
+                                                        <div className="nutrition-item text-center p-3 border rounded">
+                                                            <div className="nutrition-value h4 text-success">{currentRecipe.protein !== undefined && currentRecipe.protein !== null ? currentRecipe.protein + 'g' : '-'}</div>
+                                                            <div className="nutrition-label">Protein</div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="col-md-3">
+                                                        <div className="nutrition-item text-center p-3 border rounded">
+                                                            <div className="nutrition-value h4 text-warning">{currentRecipe.carbs !== undefined && currentRecipe.carbs !== null ? currentRecipe.carbs + 'g' : '-'}</div>
+                                                            <div className="nutrition-label">Carbs</div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="col-md-3">
+                                                        <div className="nutrition-item text-center p-3 border rounded">
+                                                            <div className="nutrition-value h4 text-info">{currentRecipe.fat !== undefined && currentRecipe.fat !== null ? currentRecipe.fat + 'g' : '-'}</div>
+                                                            <div className="nutrition-label">Fat</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="text-center py-4">
+                                                    <i className="fas fa-heartbeat fa-3x text-muted mb-3"></i>
+                                                    <p className="text-muted">No nutrition information available.</p>
+                                                </div>
+                                            )
                                         )}
                                     </div>
                                 )}

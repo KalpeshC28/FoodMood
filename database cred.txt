@@ -6,3 +6,17 @@
 
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'foodmood_ebsb',
+
+
+
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'foodmood_ebsb',
+        'USER': 'kalpesh',
+        'PASSWORD': '6Jfunp4fP4si8CfPwbWK2hkkIbKtQTkM',
+        'HOST': 'dpg-d37gmg3e5dus739cdkng-a.oregon-postgres.render.com',
+        'PORT': '5432',
+    }
+}
